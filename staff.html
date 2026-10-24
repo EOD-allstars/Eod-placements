@@ -1,0 +1,526 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>EOD Placements Staff</title>
+<link rel="icon" href="eod-logo.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Montserrat:wght@500;600;700;800;900&display=swap">
+<style>
+/* Layout: one working column. Header, tab row, then the active panel. Dark EOD look on screen, white cards on paper. */
+:root {
+  --ink: #08070A;
+  --panel: #141318;
+  --line: rgba(255,255,255,.12);
+  --pink: #FF4FA8;
+  --pink-soft: #F7A8D3;
+  --chrome: #ECE9EF;
+  --muted: #B3A9B1;
+  --good: #7FD8A6;
+  --warn: #FFC56B;
+  --bad: #FF8FA8;
+  --display: "Montserrat", "Arial", system-ui, sans-serif;
+  --wide: "Michroma", "Eurostile", "Arial", sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+[hidden] { display: none !important; }
+body { background: radial-gradient(70% 40% at 50% 0%, #2A0F23 0%, var(--ink) 70%) fixed, var(--ink); color: var(--chrome); font: 500 15px/1.5 var(--display); min-height: 100vh; }
+.wrap { width: min(100%, 1040px); margin: 0 auto; padding: 24px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); }
+header.top { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+header.top img { width: 74px; height: auto; }
+header.top .titles { flex: 1; min-width: 0; }
+.eyebrow { margin: 0; font: 400 11px var(--wide); letter-spacing: .24em; text-transform: uppercase; color: var(--pink-soft); }
+h1 { margin: 2px 0 0; font-weight: 900; font-size: clamp(26px, 5vw, 36px); line-height: 1.05; }
+h2 { margin: 0 0 6px; font-weight: 800; font-size: 20px; }
+h3 { margin: 0 0 8px; font-weight: 800; font-size: 16px; }
+p { margin: 0; }
+.help { color: var(--muted); font-size: 14px; max-width: 70ch; }
+.who { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+
+.btn { font: 800 14px var(--display); border-radius: 999px; padding: 11px 20px; cursor: pointer; border: 2px solid var(--pink); background: var(--pink); color: var(--ink); white-space: nowrap; }
+.btn.ghost { background: transparent; color: var(--chrome); border-color: rgba(255,255,255,.35); }
+.btn.small { padding: 6px 12px; font-size: 12px; }
+.btn.danger { background: transparent; color: var(--bad); border-color: rgba(255,143,168,.5); }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn:focus-visible, .tab:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--pink-soft); outline-offset: 2px; }
+
+.panel { background: rgba(20,19,24,.86); border: 1px solid var(--line); border-radius: 18px; padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.stack { display: flex; flex-direction: column; gap: 18px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.narrow { max-width: 420px; margin: 40px auto 0; }
+
+label { font: 400 10px var(--wide); letter-spacing: .2em; text-transform: uppercase; color: var(--chrome); display: flex; flex-direction: column; gap: 6px; }
+input[type=text], input[type=email], input[type=password], input[type=search], input[type=datetime-local], input[type=tel], textarea {
+  font: 600 15px var(--display); color: #FFFFFF; background: rgba(0,0,0,.45); border: 1.5px solid rgba(255,255,255,.22); border-radius: 12px; padding: 11px 14px; width: 100%; min-width: 0; letter-spacing: normal; text-transform: none; }
+textarea { min-height: 120px; font: 500 13px/1.5 ui-monospace, Menlo, monospace; resize: vertical; }
+input::placeholder, textarea::placeholder { color: rgba(236,233,239,.35); }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 640px) { .grid2, .grid3 { grid-template-columns: minmax(0, 1fr); } }
+
+.tabs { display: flex; gap: 6px; padding: 5px; background: rgba(255,255,255,.06); border-radius: 999px; margin-bottom: 18px; overflow-x: auto; }
+.tab { font: 800 14px var(--display); padding: 10px 18px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
+.tab[aria-selected="true"] { background: var(--chrome); color: var(--ink); }
+
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.stat { background: rgba(0,0,0,.35); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.stat b { display: block; font: 400 26px var(--wide); color: #FFFFFF; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 12px; color: var(--muted); }
+
+.msg { min-height: 1.4em; font-size: 14px; font-weight: 700; }
+.msg.ok { color: var(--good); } .msg.err { color: var(--bad); } .msg.warn { color: var(--warn); }
+
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { text-align: left; font: 400 10px var(--wide); letter-spacing: .16em; text-transform: uppercase; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line); background: rgba(0,0,0,.3); white-space: nowrap; }
+td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,.06); vertical-align: middle; }
+tr:last-child td { border-bottom: 0; }
+.code { font: 400 13px var(--wide); letter-spacing: .08em; color: #FFFFFF; white-space: nowrap; }
+.chip { display: inline-block; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+.chip.new { background: rgba(127,216,166,.15); color: var(--good); }
+.chip.upd { background: rgba(255,255,255,.08); color: var(--chrome); }
+.chip.bad { background: rgba(255,143,168,.15); color: var(--bad); }
+.chip.none { background: rgba(255,197,107,.14); color: var(--warn); }
+.sub { color: var(--muted); font-size: 12px; }
+.confirm { display: inline-flex; gap: 6px; align-items: center; }
+
+/* code cards: white for printing */
+.sheet { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.card { background: #FFFFFF; color: #141318; border-radius: 14px; border: 2px solid #F3C6DD; padding: 14px 16px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-items: center; break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.card .c-top { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #F1DDE8; padding-bottom: 8px; margin-bottom: 4px; }
+.card .c-top img { width: 46px; height: auto; }
+.card .c-top p { font: 400 9px var(--wide); letter-spacing: .2em; text-transform: uppercase; color: #C2287A; }
+.card .c-top strong { display: block; font: 900 17px var(--display); letter-spacing: .02em; color: #141318; text-transform: uppercase; }
+.card .c-name { font: 800 16px var(--display); }
+.card .c-code { font: 400 19px var(--wide); letter-spacing: .06em; color: #141318; margin: 2px 0; white-space: nowrap; }
+.card .c-when { font-size: 11px; font-weight: 700; color: #C2287A; }
+.card .c-url { font-size: 10px; color: #5E5864; word-break: break-all; }
+.card .c-qr { grid-row: 2 / span 4; grid-column: 2; width: 96px; height: 96px; }
+.card .c-qr svg { width: 100%; height: 100%; display: block; }
+.card .c-keep { grid-column: 1 / -1; font-size: 10px; color: #5E5864; border-top: 1px dashed #E6D3DF; padding-top: 6px; margin-top: 4px; }
+
+@media print {
+  @page { size: A4; margin: 10mm; }
+  :root { color-scheme: light; }
+  html, body { background: #FFFFFF !important; color: #000000; min-height: 0; }
+  .wrap { padding: 0; width: 100%; }
+  body > .wrap > *:not(#app), #app > *:not(#tab-cards), #tab-cards > *:not(#sheet) { display: none !important; }
+  #tab-cards { background: none; border: 0; padding: 0; }
+  .sheet { gap: 6mm; width: 100%; }
+  .card { width: 100%; }
+  .card { height: 62mm; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <img src="eod-logo.png" alt="EOD Allstars">
+    <div class="titles">
+      <p class="eyebrow">2027 Team Reveals</p>
+      <h1>Placements Staff</h1>
+    </div>
+    <div class="who" id="who" hidden><span id="whoEmail"></span><button class="btn ghost small" id="signOut" type="button">Sign out</button></div>
+  </header>
+
+  <!-- sign in -->
+  <section class="panel narrow" id="signin">
+    <h2>Staff sign in</h2>
+    <form id="signinForm" class="stack" novalidate>
+      <label for="email">Email<input id="email" type="email" autocomplete="username" required></label>
+      <label for="password">Password<input id="password" type="password" autocomplete="current-password" required></label>
+      <div class="row"><button class="btn" type="submit" id="signinBtn">Sign in</button><button class="btn ghost" type="button" id="forgot">Forgot password</button></div>
+      <p class="msg" id="signinMsg" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <div id="app" hidden>
+    <div class="tabs" role="tablist" aria-label="Staff sections">
+      <button class="tab" role="tab" id="t-athletes" aria-controls="tab-athletes" aria-selected="true" type="button">Athletes &amp; codes</button>
+      <button class="tab" role="tab" id="t-add" aria-controls="tab-add" aria-selected="false" type="button">Add athletes</button>
+      <button class="tab" role="tab" id="t-cards" aria-controls="tab-cards" aria-selected="false" type="button">Code cards</button>
+      <button class="tab" role="tab" id="t-settings" aria-controls="tab-settings" aria-selected="false" type="button">Decision day</button>
+    </div>
+
+    <!-- athletes -->
+    <section class="panel" id="tab-athletes" role="tabpanel" aria-labelledby="t-athletes">
+      <div class="stats">
+        <div class="stat"><b id="sTotal">0</b><span>Athletes</span></div>
+        <div class="stat"><b id="sCoded">0</b><span>With a code</span></div>
+        <div class="stat"><b id="sNoCode">0</b><span>Need a code</span></div>
+      </div>
+      <div class="row">
+        <button class="btn" id="genBtn" type="button" disabled>Generate codes</button>
+        <p class="msg" id="genMsg" aria-live="polite"></p>
+      </div>
+      <div class="row">
+        <input type="search" id="search" placeholder="Search name, athlete ID or code" aria-label="Search athletes" style="flex: 1 1 260px">
+        <button class="btn ghost" id="exportBtn" type="button">Download list (CSV)</button>
+      </div>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Athlete</th><th>ID</th><th>Code</th><th>Parent</th><th></th></tr></thead>
+          <tbody id="rows"><tr><td colspan="5" class="sub">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- add athletes -->
+    <section class="panel" id="tab-add" role="tabpanel" aria-labelledby="t-add" hidden>
+      <h2>Upload athletes from a spreadsheet</h2>
+      <p class="help">Export a CSV with these columns: <b>Athlete ID, First name, Last name, Parent name, Parent email, Parent phone</b>. Use the same athlete IDs as the tryout hub. Uploading again updates details and never changes a code.</p>
+      <div class="row">
+        <button class="btn ghost" id="templateBtn" type="button">Download template</button>
+        <label for="csvFile" class="btn ghost" style="flex-direction: row; font: 800 14px var(--display); letter-spacing: normal; text-transform: none">Choose CSV file<input id="csvFile" type="file" accept=".csv,text/csv" hidden></label>
+      </div>
+      <label for="csvText">Or paste rows here<textarea id="csvText" placeholder="Athlete ID,First name,Last name,Parent name,Parent email,Parent phone&#10;1042,Mia,Thompson,Jess Thompson,jess@example.com,0400 000 000"></textarea></label>
+      <div id="preview" class="stack" hidden>
+        <p class="msg" id="previewSum"></p>
+        <div class="tablewrap">
+          <table><thead><tr><th></th><th>Athlete</th><th>ID</th><th>Parent</th><th>Email</th></tr></thead><tbody id="previewRows"></tbody></table>
+        </div>
+        <div class="row"><button class="btn" id="saveBtn" type="button" disabled>Save athletes</button><p class="msg" id="saveMsg" aria-live="polite"></p></div>
+      </div>
+
+      <h2 style="margin-top: 14px">Add one athlete</h2>
+      <form id="oneForm" class="stack" novalidate>
+        <div class="grid3">
+          <label for="oId">Athlete ID<input id="oId" type="text" required></label>
+          <label for="oFirst">First name<input id="oFirst" type="text" required></label>
+          <label for="oLast">Last name<input id="oLast" type="text"></label>
+        </div>
+        <div class="grid3">
+          <label for="oPName">Parent name<input id="oPName" type="text"></label>
+          <label for="oPEmail">Parent email<input id="oPEmail" type="email"></label>
+          <label for="oPPhone">Parent phone<input id="oPPhone" type="tel"></label>
+        </div>
+        <div class="row"><button class="btn" type="submit">Add and give a code</button><p class="msg" id="oneMsg" aria-live="polite"></p></div>
+      </form>
+    </section>
+
+    <!-- cards -->
+    <section class="panel" id="tab-cards" role="tabpanel" aria-labelledby="t-cards" hidden>
+      <h2>Code cards</h2>
+      <p class="help">8 cards per A4 page. Each QR code opens the site with that athlete's code filled in. In the print window, choose "Save as PDF" or print straight away.</p>
+      <div class="row">
+        <input type="search" id="cardSearch" placeholder="Only print some: search names or IDs" aria-label="Filter cards" style="flex: 1 1 260px">
+        <button class="btn" id="printBtn" type="button">Print cards</button>
+      </div>
+      <p class="sub" id="cardCount"></p>
+      <div class="sheet" id="sheet"></div>
+    </section>
+
+    <!-- settings -->
+    <section class="panel" id="tab-settings" role="tabpanel" aria-labelledby="t-settings" hidden>
+      <h2>Decision day</h2>
+      <p class="help">Placements stay locked until this exact time, checked against Google's clock, not anyone's phone. The countdown and the code cards use it too.</p>
+      <form id="setForm" class="stack" novalidate>
+        <div class="grid2">
+          <label for="releaseAt">Reveals open (Sydney time)<input id="releaseAt" type="datetime-local" required></label>
+          <label for="confirmBy">Families confirm by<input id="confirmBy" type="text" placeholder="e.g. Friday 20 November"></label>
+        </div>
+        <div class="row"><button class="btn" type="submit">Save</button><p class="msg" id="setMsg" aria-live="polite"></p></div>
+      </form>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, writeBatch, serverTimestamp, Timestamp, query, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyBz7Tjw7siXLx7cnCIZXhLzxy2YNI7ICxY",
+  authDomain: "eod-placements.firebaseapp.com",
+  projectId: "eod-placements",
+  storageBucket: "eod-placements.firebasestorage.app",
+  messagingSenderId: "435764044771",
+  appId: "1:435764044771:web:909ba9ab04c50c97c6b6d6"
+});
+const auth = getAuth(app), db = getFirestore(app);
+const $ = id => document.getElementById(id);
+const SITE = new URL("./", location.href).href;
+const say = (el, text, kind = "") => { const m = $(el); m.textContent = text; m.className = "msg " + kind; };
+
+// ---------- codes ----------
+// No 0/O, 1/I, 5/S so parents can't misread a card.
+const ALPHA = "ABCDEFGHJKLMNPQRTUVWXYZ2346789";
+function randomCode() {
+  const out = [], buf = new Uint8Array(32), max = 256 - (256 % ALPHA.length);
+  while (out.length < 8) {
+    crypto.getRandomValues(buf);
+    for (const b of buf) { if (b < max && out.length < 8) out.push(ALPHA[b % ALPHA.length]); }
+  }
+  return `PINK-${out.slice(0, 4).join("")}-${out.slice(4).join("")}`;
+}
+function uniqueCode(used) { let c; do { c = randomCode(); } while (used.has(c)); used.add(c); return c; }
+
+// ---------- data ----------
+let roster = [];          // [{id, firstName, lastName, parentName, parentEmail, parentPhone, code}]
+let settings = { releaseAt: null, confirmBy: "" };
+const fullName = a => `${a.firstName || ""} ${a.lastName || ""}`.trim();
+const usedCodes = () => new Set(roster.map(a => a.code).filter(Boolean));
+
+async function loadAll() {
+  const snap = await getDocs(collection(db, "roster"));
+  roster = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => (a.lastName || "").localeCompare(b.lastName || "") || (a.firstName || "").localeCompare(b.firstName || ""));
+  const s = await getDoc(doc(db, "settings", "public"));
+  if (s.exists()) { const d = s.data(); settings = { releaseAt: d.releaseAt ? d.releaseAt.toDate() : null, confirmBy: d.confirmBy || "" }; }
+  renderAthletes(); renderCards(); renderSettings();
+}
+
+// batched writes, 400 at a time
+async function commitAll(ops) {
+  for (let i = 0; i < ops.length; i += 400) {
+    const b = writeBatch(db);
+    ops.slice(i, i + 400).forEach(([ref, data]) => b.set(ref, data, { merge: true }));
+    await b.commit();
+  }
+}
+
+// ---------- sign in ----------
+$("signinForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const email = $("email").value.trim(), pw = $("password").value;
+  if (!email || !pw) return say("signinMsg", "Enter your email and password.", "err");
+  $("signinBtn").disabled = true; say("signinMsg", "Signing in…");
+  try { await signInWithEmailAndPassword(auth, email, pw); }
+  catch (err) { say("signinMsg", "That email and password don't match a staff account.", "err"); }
+  $("signinBtn").disabled = false;
+});
+$("forgot").addEventListener("click", async () => {
+  const email = $("email").value.trim();
+  if (!email) return say("signinMsg", "Type your email above first, then tap Forgot password.", "err");
+  try { await sendPasswordResetEmail(auth, email); say("signinMsg", "Password reset email sent. Check your inbox.", "ok"); }
+  catch (e) { say("signinMsg", "Couldn't send the reset email. Check the address and try again.", "err"); }
+});
+$("signOut").addEventListener("click", () => signOut(auth));
+
+onAuthStateChanged(auth, async user => {
+  $("signin").hidden = !!user; $("app").hidden = !user; $("who").hidden = !user;
+  if (!user) return;
+  $("whoEmail").textContent = user.email;
+  try { await getDocs(query(collection(db, "roster"), limit(1))); }
+  catch (e) {
+    $("app").hidden = true; $("signin").hidden = false;
+    say("signinMsg", "This account isn't on the staff list. Ask Lydia to add your email to the Firestore rules.", "err");
+    return signOut(auth);
+  }
+  loadAll().catch(() => say("genMsg", "Couldn't load athletes. Check your internet and refresh.", "err"));
+});
+
+// ---------- tabs ----------
+const TABS = ["athletes", "add", "cards", "settings"];
+TABS.forEach(t => $("t-" + t).addEventListener("click", () => {
+  TABS.forEach(u => { $("t-" + u).setAttribute("aria-selected", String(u === t)); $("tab-" + u).hidden = u !== t; });
+}));
+
+// ---------- athletes list ----------
+function renderAthletes() {
+  const coded = roster.filter(a => a.code).length;
+  $("sTotal").textContent = roster.length; $("sCoded").textContent = coded; $("sNoCode").textContent = roster.length - coded;
+  $("genBtn").disabled = roster.length === coded;
+  $("genBtn").textContent = roster.length === coded ? "Everyone has a code" : `Generate ${roster.length - coded} code${roster.length - coded === 1 ? "" : "s"}`;
+  const q = $("search").value.trim().toLowerCase();
+  const list = roster.filter(a => {
+    if (!q) return true;
+    const hay = [fullName(a), a.id, a.code || "", (a.code || "").replace(/-/g, ""), a.parentName || "", a.parentEmail || ""].join(" ").toLowerCase();
+    return hay.includes(q) || hay.includes(q.replace(/[\s-]/g, ""));
+  });
+  const tb = $("rows"); tb.replaceChildren();
+  if (!list.length) { const tr = tb.insertRow(); const td = tr.insertCell(); td.colSpan = 5; td.className = "sub"; td.textContent = roster.length ? "No athletes match that search." : "No athletes yet. Add them in the Add athletes tab."; return; }
+  list.forEach(a => {
+    const tr = tb.insertRow();
+    const n = tr.insertCell(); n.textContent = fullName(a);
+    const i = tr.insertCell(); i.textContent = a.id; i.className = "sub";
+    const c = tr.insertCell();
+    if (a.code) { c.textContent = a.code; c.className = "code"; } else { const s = document.createElement("span"); s.className = "chip none"; s.textContent = "No code yet"; c.append(s); }
+    const p = tr.insertCell(); p.append(a.parentName || ""); if (a.parentEmail) { const s = document.createElement("div"); s.className = "sub"; s.textContent = a.parentEmail; p.append(s); }
+    const act = tr.insertCell(); act.style.textAlign = "right";
+    if (a.code) act.append(resetButton(a));
+  });
+}
+function resetButton(a) {
+  const wrap = document.createElement("span"); wrap.className = "confirm";
+  const b = document.createElement("button"); b.className = "btn ghost small"; b.type = "button"; b.textContent = "New code";
+  b.onclick = () => {
+    wrap.replaceChildren();
+    const t = document.createElement("span"); t.className = "sub"; t.textContent = "Old code stops working.";
+    const yes = document.createElement("button"); yes.className = "btn danger small"; yes.type = "button"; yes.textContent = "Replace";
+    const no = document.createElement("button"); no.className = "btn ghost small"; no.type = "button"; no.textContent = "Cancel";
+    no.onclick = () => wrap.replaceChildren(b);
+    yes.onclick = async () => {
+      yes.disabled = true;
+      const code = uniqueCode(usedCodes());
+      try { await setDoc(doc(db, "roster", a.id), { code, codeReplacedAt: serverTimestamp() }, { merge: true }); a.code = code; renderAthletes(); renderCards(); say("genMsg", `${fullName(a)} has a new code: ${code}`, "ok"); }
+      catch (e) { say("genMsg", "Couldn't save the new code. Try again.", "err"); yes.disabled = false; }
+    };
+    wrap.append(t, yes, no);
+  };
+  wrap.append(b); return wrap;
+}
+$("search").addEventListener("input", renderAthletes);
+$("genBtn").addEventListener("click", async () => {
+  const need = roster.filter(a => !a.code);
+  if (!need.length) return;
+  $("genBtn").disabled = true; say("genMsg", `Generating ${need.length} codes…`);
+  const used = usedCodes(), ops = [];
+  need.forEach(a => { a._new = uniqueCode(used); ops.push([doc(db, "roster", a.id), { code: a._new, codeCreatedAt: serverTimestamp() }]); });
+  try { await commitAll(ops); need.forEach(a => { a.code = a._new; delete a._new; }); say("genMsg", `Done. ${need.length} code${need.length === 1 ? "" : "s"} created.`, "ok"); }
+  catch (e) { need.forEach(a => delete a._new); say("genMsg", "Couldn't save the codes. Nothing was changed. Try again.", "err"); }
+  renderAthletes(); renderCards();
+});
+$("exportBtn").addEventListener("click", () => {
+  const rows = [["Athlete ID", "First name", "Last name", "Code", "Parent name", "Parent email", "Parent phone"]]
+    .concat(roster.map(a => [a.id, a.firstName, a.lastName, a.code || "", a.parentName || "", a.parentEmail || "", a.parentPhone || ""]));
+  download("eod-athlete-codes.csv", rows.map(r => r.map(csvCell).join(",")).join("\n"));
+});
+
+// ---------- CSV ----------
+function parseCSV(text) {
+  const rows = []; let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === "," || ch === "\t") { row.push(cell); cell = ""; }
+    else if (ch === "\n" || ch === "\r") { if (ch === "\r" && text[i + 1] === "\n") i++; row.push(cell); rows.push(row); row = []; cell = ""; }
+    else cell += ch;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return rows.map(r => r.map(c => c.trim())).filter(r => r.some(Boolean));
+}
+const csvCell = v => { v = String(v ?? ""); return /[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v; };
+function download(name, text) {
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([text], { type: "text/csv" })); a.download = name;
+  document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+const HEAD = { id: ["athleteid", "id", "athlete"], firstName: ["firstname", "first"], lastName: ["lastname", "last", "surname"],
+  parentName: ["parentname", "parent", "guardian", "guardianname"], parentEmail: ["parentemail", "email", "guardianemail"], parentPhone: ["parentphone", "phone", "mobile", "guardianphone"] };
+let pending = [];
+function buildPreview(text) {
+  const rows = parseCSV(text);
+  $("preview").hidden = !rows.length; if (!rows.length) return;
+  const head = rows[0].map(h => h.toLowerCase().replace(/[^a-z]/g, ""));
+  const col = {}; Object.entries(HEAD).forEach(([k, names]) => { col[k] = head.findIndex(h => names.includes(h)); });
+  const hasHeader = col.id >= 0 && col.firstName >= 0;
+  if (!hasHeader) { Object.assign(col, { id: 0, firstName: 1, lastName: 2, parentName: 3, parentEmail: 4, parentPhone: 5 }); }
+  const body = hasHeader ? rows.slice(1) : rows;
+  const existing = new Map(roster.map(a => [a.id, a])), seen = new Map();
+  pending = body.map(r => {
+    const g = k => (col[k] >= 0 ? r[col[k]] || "" : "");
+    const a = { id: g("id").replace(/\//g, "-"), firstName: g("firstName"), lastName: g("lastName"), parentName: g("parentName"), parentEmail: g("parentEmail"), parentPhone: g("parentPhone") };
+    a.problem = !a.id ? "Missing athlete ID" : !a.firstName ? "Missing first name" : seen.has(a.id) ? "Duplicate athlete ID" : "";
+    if (a.id) seen.set(a.id, (seen.get(a.id) || 0) + 1);
+    a.status = a.problem ? "bad" : existing.has(a.id) ? "upd" : "new";
+    return a;
+  });
+  pending.forEach(a => { if (!a.problem && seen.get(a.id) > 1) { a.problem = "Duplicate athlete ID"; a.status = "bad"; } });
+  const bad = pending.filter(a => a.status === "bad").length, nw = pending.filter(a => a.status === "new").length, up = pending.filter(a => a.status === "upd").length;
+  say("previewSum", bad ? `${bad} row${bad === 1 ? "" : "s"} need fixing before you can save. ${nw} new, ${up} updates.` : `${nw} new athlete${nw === 1 ? "" : "s"}, ${up} update${up === 1 ? "" : "s"}. Ready to save.`, bad ? "err" : "ok");
+  $("saveBtn").disabled = !!bad || !pending.length;
+  const tb = $("previewRows"); tb.replaceChildren();
+  pending.forEach(a => {
+    const tr = tb.insertRow();
+    const s = tr.insertCell(); const chip = document.createElement("span"); chip.className = "chip " + a.status; chip.textContent = a.problem || (a.status === "new" ? "New" : "Update"); s.append(chip);
+    tr.insertCell().textContent = `${a.firstName} ${a.lastName}`.trim();
+    tr.insertCell().textContent = a.id;
+    tr.insertCell().textContent = a.parentName;
+    tr.insertCell().textContent = a.parentEmail;
+  });
+}
+$("csvText").addEventListener("input", () => buildPreview($("csvText").value));
+$("csvFile").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; const t = await f.text(); $("csvText").value = t; buildPreview(t); });
+$("templateBtn").addEventListener("click", () => download("eod-athletes-template.csv", "Athlete ID,First name,Last name,Parent name,Parent email,Parent phone\n"));
+$("saveBtn").addEventListener("click", async () => {
+  $("saveBtn").disabled = true; say("saveMsg", "Saving…");
+  const ops = pending.map(a => [doc(db, "roster", a.id), { firstName: a.firstName, lastName: a.lastName, parentName: a.parentName, parentEmail: a.parentEmail, parentPhone: a.parentPhone, updatedAt: serverTimestamp() }]);
+  try {
+    await commitAll(ops); await loadAll();
+    say("saveMsg", `Saved ${pending.length} athlete${pending.length === 1 ? "" : "s"}. Go to Athletes & codes to generate their codes.`, "ok");
+    $("csvText").value = ""; pending = []; $("previewRows").replaceChildren();
+  } catch (e) { say("saveMsg", "Couldn't save. Nothing was changed. Check your internet and try again.", "err"); $("saveBtn").disabled = false; }
+});
+$("oneForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const a = { id: $("oId").value.trim().replace(/\//g, "-"), firstName: $("oFirst").value.trim(), lastName: $("oLast").value.trim(),
+    parentName: $("oPName").value.trim(), parentEmail: $("oPEmail").value.trim(), parentPhone: $("oPPhone").value.trim() };
+  if (!a.id || !a.firstName) return say("oneMsg", "Athlete ID and first name are needed.", "err");
+  const ex = roster.find(r => r.id === a.id);
+  const code = ex && ex.code ? ex.code : uniqueCode(usedCodes());
+  try {
+    await setDoc(doc(db, "roster", a.id), { ...a, code, updatedAt: serverTimestamp() }, { merge: true });
+    await loadAll(); e.target.reset();
+    say("oneMsg", `${a.firstName}'s code: ${code}`, "ok");
+  } catch (err) { say("oneMsg", "Couldn't save. Try again.", "err"); }
+});
+
+// ---------- cards ----------
+const fmtDay = new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Sydney", weekday: "long", day: "numeric", month: "long" });
+const fmtTime = new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Sydney", hour: "numeric", minute: "2-digit" });
+const whenText = () => settings.releaseAt ? `${fmtDay.format(settings.releaseAt)} · ${fmtTime.format(settings.releaseAt).replace(" ", "")}` : "Date coming soon";
+function qrSvg(text) {
+  if (!window.qrcode) return "";
+  const q = qrcode(0, "M"); q.addData(text); q.make();
+  return q.createSvgTag({ cellSize: 4, margin: 0, scalable: true });
+}
+function renderCards() {
+  const q = $("cardSearch").value.trim().toLowerCase();
+  const list = roster.filter(a => a.code && (!q || `${fullName(a)} ${a.id}`.toLowerCase().includes(q)));
+  $("cardCount").textContent = `${list.length} card${list.length === 1 ? "" : "s"} · ${Math.ceil(list.length / 8)} page${Math.ceil(list.length / 8) === 1 ? "" : "s"}` + (roster.some(a => !a.code) ? " · some athletes don't have a code yet" : "");
+  const sheet = $("sheet"); sheet.replaceChildren();
+  const short = SITE.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  list.forEach(a => {
+    const c = document.createElement("div"); c.className = "card";
+    const top = document.createElement("div"); top.className = "c-top";
+    const logo = document.createElement("img"); logo.src = "eod-logo.png"; logo.alt = "";
+    const tt = document.createElement("div"); const e1 = document.createElement("p"); e1.textContent = "2027 Team Reveals"; const st = document.createElement("strong"); st.textContent = "Decision Day"; tt.append(e1, st);
+    top.append(logo, tt);
+    const nm = document.createElement("p"); nm.className = "c-name"; nm.textContent = fullName(a);
+    const cd = document.createElement("p"); cd.className = "c-code"; cd.textContent = a.code;
+    const wh = document.createElement("p"); wh.className = "c-when"; wh.textContent = whenText();
+    const ur = document.createElement("p"); ur.className = "c-url"; ur.textContent = short;
+    const qr = document.createElement("div"); qr.className = "c-qr"; qr.innerHTML = qrSvg(`${SITE}?code=${encodeURIComponent(a.code)}`);
+    const kp = document.createElement("p"); kp.className = "c-keep"; kp.textContent = "Keep this card safe. Scan the code or visit the site, then enter your athlete code.";
+    c.append(top, nm, qr, cd, wh, ur, kp); sheet.append(c);
+  });
+}
+$("cardSearch").addEventListener("input", renderCards);
+$("printBtn").addEventListener("click", () => window.print());
+
+// ---------- settings ----------
+function sydneyInputValue(d) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Sydney", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(d).map(x => [x.type, x.value]));
+  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
+}
+// turns "2026-11-13T19:00" typed as Sydney time into the right moment, whatever the computer's own time zone
+function fromSydney(v) {
+  const guess = new Date(v + ":00Z");
+  const shown = new Date(sydneyInputValue(guess) + ":00Z");
+  return new Date(guess.getTime() - (shown - guess));
+}
+function renderSettings() {
+  if (settings.releaseAt) $("releaseAt").value = sydneyInputValue(settings.releaseAt);
+  $("confirmBy").value = settings.confirmBy;
+  say("setMsg", settings.releaseAt ? `Reveals open ${whenText()}.` : "No date set yet.", settings.releaseAt ? "ok" : "warn");
+}
+$("setForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const v = $("releaseAt").value;
+  if (!v) return say("setMsg", "Pick the date and time reveals open.", "err");
+  const when = fromSydney(v);
+  try {
+    await setDoc(doc(db, "settings", "public"), { releaseAt: Timestamp.fromDate(when), confirmBy: $("confirmBy").value.trim(), updatedAt: serverTimestamp() }, { merge: true });
+    settings = { releaseAt: when, confirmBy: $("confirmBy").value.trim() };
+    renderSettings(); renderCards();
+  } catch (err) { say("setMsg", "Couldn't save. Try again.", "err"); }
+});
+</script>
+</body>
+</html>
