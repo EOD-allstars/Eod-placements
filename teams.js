@@ -17,8 +17,8 @@ window.EOD_CONFIG = {
   defaultRelease: "2026-11-13T19:00:00+11:00",
 
   teams: {
-    "Pink Kitties":   { discipline: "cheer", level: "[Level]", logo: "logos/pink-kitties.png",  training: [["MON", "5:00–7:00pm"], ["WED", "5:00–7:00pm"]] },
-    "Tiny Diamonds":  { discipline: "cheer", level: "[Level]", logo: "logos/tiny-diamonds.png", training: [["TUE", "4:00–5:30pm"], ["THU", "4:00–5:30pm"]] },
+    "Pink Kitties":   { discipline: "cheer", level: "[Level]", logo: "pink-kitties.png",  training: [["MON", "5:00–7:00pm"], ["WED", "5:00–7:00pm"]] },
+    "Tiny Diamonds":  { discipline: "cheer", level: "[Level]", logo: "tiny-diamonds.png", training: [["TUE", "4:00–5:30pm"], ["THU", "4:00–5:30pm"]] },
     "Pink Assassins": { discipline: "cheer", level: "[Level]", logo: null, training: [["MON", "7:00–9:00pm"], ["WED", "7:00–9:00pm"]] },
     "Cheetahs":       { discipline: "cheer", level: "[Level]", logo: null, training: [["TUE", "5:30–7:30pm"], ["THU", "5:30–7:30pm"]] },
     "Lady Lynx":      { discipline: "cheer", level: "[Level]", logo: null, training: [["MON", "4:00–5:30pm"], ["WED", "4:00–5:30pm"]] },
@@ -26,7 +26,7 @@ window.EOD_CONFIG = {
     "Pink Panthers":  { discipline: "cheer", level: "[Level]", logo: null, training: [["WED", "5:30–7:30pm"], ["FRI", "4:00–6:00pm"]] },
     "Miss Purrrfect": { discipline: "cheer", level: "[Level]", logo: null, training: [["THU", "7:00–9:00pm"]] },
 
-    "Open Premier":   { discipline: "dance", level: "[Style]", logo: "logos/open-premier.png", training: [["TUE", "7:00–9:00pm"]] },
-    "Notorious":      { discipline: "dance", level: "[Style]", logo: "logos/notorious.png", tall: true, training: [["THU", "6:00–8:00pm"]] }
+    "Open Premier":   { discipline: "dance", level: "[Style]", logo: "open-premier.png", training: [["TUE", "7:00–9:00pm"]] },
+    "Notorious":      { discipline: "dance", level: "[Style]", logo: "notorious.png", tall: true, training: [["THU", "6:00–8:00pm"]] }
   }
 };
