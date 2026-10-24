@@ -451,6 +451,29 @@ button:disabled { opacity: .6; cursor: default; }
   .note { font-size: clamp(14px, 2vh, 20px); }
   .ctl { font-size: 15px; padding: 10px 16px; }
 }
+
+/* ---------- lite mode for TVs and slower devices: same look, far fewer expensive effects ---------- */
+.lite .grain, .lite .vignette { display: none !important; }
+.lite .beam { filter: none !important; animation: none !important; opacity: .7; }
+.lite .bgv video { filter: none !important; transition: opacity 1s ease !important; transform: none !important; }
+.lite .bgv::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at center, rgba(8,7,10,.15) 40%, rgba(8,7,10,.75) 100%); }
+.lite .card, .lite .cell, .lite .ctl { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+.lite .card { background: rgba(20,19,24,.92) !important; }
+.lite .team-logo, .lite .duo img, .lite .eod, .lite .gate-logo { filter: none !important; }
+.lite .scene.on .team-logo { animation: slamLite .6s cubic-bezier(.2,1.4,.4,1) forwards !important; }
+.lite .w-big, .lite .mega, .lite .congrats, .lite .gate-title, .lite .logo-text, .lite .lets, .lite .best, .lite .w-dance, .lite .slam-line { filter: none !important; }
+.lite .w-big span, .lite .best .b1, .lite .best .b3, .lite .slam-line, .lite .moment span, .lite .moment em, .lite .line, .lite .slot span { filter: none !important; }
+.lite .scene.on .w-big span, .lite .scene.on .best .b1, .lite .scene.on .best .b3, .lite .scene.on .slam-line { animation-name: slamLite !important; }
+.lite .scene.on .moment span, .lite .scene.on .moment em, .lite .dance .scene.on .moment em { animation-name: riseLite !important; }
+.lite .scene.on .line { animation-name: trackLite !important; }
+.lite .scene.on .mega, .lite .scene.on .lets, .lite .scene.on .congrats { animation: none !important; background-position: 0 0; }
+.lite .scene.on .wipe { animation: wipeIn .5s cubic-bezier(.7,0,.2,1) forwards !important; background-position: 30% 0; }
+.lite .tension .scene.on, .lite .tension2 .scene.on, .lite .scene.on .w-big { animation: none !important; }
+.lite .halo { animation: none !important; }
+.lite .dots span { animation: none !important; opacity: 1; }
+@keyframes slamLite { 0% { opacity: 0; transform: scale(1.6); } 100% { opacity: 1; transform: none; } }
+@keyframes riseLite { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes trackLite { 0% { opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
 </style>
 
 </head>
@@ -601,6 +624,21 @@ button:disabled { opacity: .6; cursor: default; }
 
 <script src="teams.js"></script>
 <script>
+/* Lite mode: on for smart TVs and devices that can't keep up. Add ?lite to the address to force it on, ?full to force it off. */
+(() => {
+  const q = new URLSearchParams(location.search), root = document.documentElement;
+  const tv = /SmartTV|SMART-TV|Tizen|Web0S|WebOS|NetCast|BRAVIA|AFT[A-Z]|CrKey|Android TV|GoogleTV|HbbTV|VIDAA|Viera|Roku|PlayStation|Xbox|Nintendo/i.test(navigator.userAgent);
+  if (q.has("full")) return;
+  if (q.has("lite") || tv) { root.classList.add("lite"); return; }
+  // measure the frame rate for 2.5 seconds after load; under ~40fps switches lite on
+  let n = 0, t0 = 0;
+  requestAnimationFrame(function f(t) {
+    if (!t0) t0 = t;
+    n++;
+    if (t - t0 < 2500) return requestAnimationFrame(f);
+    if (n / ((t - t0) / 1000) < 40) root.classList.add("lite");
+  });
+})();
 document.querySelectorAll('img[data-logo="e"]').forEach(i => (i.src = "eod-logo.png"));
 
 /* ---------- soundtrack: the real tracks, played through Web Audio so the visuals can follow the song's clock ---------- */
@@ -691,10 +729,11 @@ const S = (() => {
   const cheerGlitter = ["#FFFFFF", "#FFE3F1", "#F7A8D3", "#FF7DBE", "#E9E6EC", "#F3DDB8"];
   const danceGlitter = ["#FFFFFF", "#E9E6EC", "#C9C4CE", "#F3DDB8", "#F7A8D3"];
   function size() {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = document.documentElement.classList.contains("lite") ? 1 : Math.min(window.devicePixelRatio || 1, 2);
     W = cv.clientWidth; H = cv.clientHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
   window.addEventListener("resize", size); size();
+  new MutationObserver(size).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
   const rnd = (a, b) => a + Math.random() * (b - a);
   const pal = () => (stage.classList.contains("dance") ? danceGlitter : cheerGlitter);
   function fleck(x, y, vx, vy, big) {
@@ -704,7 +743,7 @@ const S = (() => {
   }
   // a shimmering burst from the logo, then a slow fall of glitter for a few seconds
   function burst(strength = 1) {
-    const cx = W / 2, cy = H * .46, n = Math.round(260 * strength);
+    const cx = W / 2, cy = H * .46, n = Math.round(260 * strength * (document.documentElement.classList.contains("lite") ? .35 : 1));
     for (let i = 0; i < n; i++) {
       const a = rnd(0, Math.PI * 2), s = rnd(.6, 7.5) * (Math.random() < .2 ? 1.5 : 1);
       fleck(cx + rnd(-30, 30), cy + rnd(-20, 20), Math.cos(a) * s, Math.sin(a) * s * .8, Math.random() < .07);
@@ -723,7 +762,7 @@ const S = (() => {
   function tick() {
     ctx.clearRect(0, 0, W, H);
     if (performance.now() < rainUntil && stage.classList.contains("party")) {
-      for (let i = 0; i < 3; i++) fleck(rnd(0, W), rnd(-20, 0), rnd(-.3, .3), rnd(.6, 1.6), Math.random() < .04);
+      for (let i = 0; i < (document.documentElement.classList.contains("lite") ? 1 : 3); i++) fleck(rnd(0, W), rnd(-20, 0), rnd(-.3, .3), rnd(.6, 1.6), Math.random() < .04);
     }
     ctx.globalCompositeOperation = "lighter";
     flecks.forEach(f => {
