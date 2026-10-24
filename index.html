@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#08070A">
 <title>EOD Decision Day</title>
 <meta name="description" content="EOD Allstars 2027 team reveals. Enter your athlete code to see your placement.">
-<link rel="icon" href="img/eod-logo.png">
+<link rel="icon" href="eod-logo.png">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Montserrat:wght@500;600;700;800;900&family=Yellowtail&family=Pinyon+Script&display=swap">
 <style>
 html, body { margin: 0; } [hidden] { display: none !important; } img { max-width: 100%; }
@@ -376,12 +376,12 @@ button:disabled { opacity: .6; cursor: default; }
 <body>
 <main class="stage" id="stage">
   <div class="bgv" id="bgv" aria-hidden="true">
-    <video data-name="mix" src="videos/mix.mp4" muted loop playsinline autoplay preload="auto"></video>
-    <video data-name="opening" src="videos/opening.mp4" muted loop playsinline preload="auto"></video>
-    <video data-name="intro" src="videos/intro.mp4" muted playsinline preload="auto"></video>
-    <video data-name="routines" src="videos/routines.mp4" muted loop playsinline preload="auto"></video>
-    <video data-name="celebrate" src="videos/celebrate.mp4" muted loop playsinline preload="auto"></video>
-    <video data-name="dance" src="videos/dance-bts.mp4" muted loop playsinline preload="auto"></video>
+    <video data-name="mix" src="mix.mp4" muted loop playsinline autoplay preload="auto"></video>
+    <video data-name="opening" src="opening.mp4" muted loop playsinline preload="auto"></video>
+    <video data-name="intro" src="intro.mp4" muted playsinline preload="auto"></video>
+    <video data-name="routines" src="routines.mp4" muted loop playsinline preload="auto"></video>
+    <video data-name="celebrate" src="celebrate.mp4" muted loop playsinline preload="auto"></video>
+    <video data-name="dance" src="dance-bts.mp4" muted loop playsinline preload="auto"></video>
   </div>
   <div class="ambient" aria-hidden="true"></div>
   <div class="beams" aria-hidden="true"><div class="beam l"></div><div class="beam c"></div><div class="beam r"></div></div>
@@ -518,15 +518,15 @@ button:disabled { opacity: .6; cursor: default; }
   <button class="ctl" id="skip" type="button" hidden>Skip to summary</button>
 </main>
 
-<script src="js/teams.js"></script>
+<script src="teams.js"></script>
 <script>
-document.querySelectorAll('img[data-logo="e"]').forEach(i => (i.src = "img/eod-logo.png"));
+document.querySelectorAll('img[data-logo="e"]').forEach(i => (i.src = "eod-logo.png"));
 
 /* ---------- soundtrack: the real tracks, played through Web Audio so the visuals can follow the song's clock ---------- */
 const S = (() => {
   const AC = window.AudioContext || window.webkitAudioContext;
   let ctx = null, master, filt, gain, src = null, cur = null, t0 = 0, off = 0, muted = false;
-  const urls = { cheer: "audio/cheer-track.mp3", dance: "audio/dance-track.mp3" };
+  const urls = { cheer: "cheer-track.mp3", dance: "dance-track.mp3" };
   const raw = {}, buf = {};
   Object.entries(urls).forEach(([k, u]) => { raw[k] = fetch(u).then(r => (r.ok ? r.arrayBuffer() : null)).catch(() => null); });
   function ensure() {
