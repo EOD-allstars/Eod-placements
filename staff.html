@@ -65,7 +65,7 @@ input::placeholder, textarea::placeholder { color: rgba(236,233,239,.35); }
 .tab { font: 800 14px var(--display); padding: 10px 18px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
 .tab[aria-selected="true"] { background: var(--chrome); color: var(--ink); }
 
-.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
 .stat { background: rgba(0,0,0,.35); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
 .stat b { display: block; font: 400 26px var(--wide); color: #FFFFFF; font-variant-numeric: tabular-nums; }
 .stat span { font-size: 12px; color: var(--muted); }
@@ -86,6 +86,18 @@ tr:last-child td { border-bottom: 0; }
 .chip.none { background: rgba(255,197,107,.14); color: var(--warn); }
 .sub { color: var(--muted); font-size: 12px; }
 .confirm { display: inline-flex; gap: 6px; align-items: center; }
+
+.rosters { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; align-items: start; }
+.roster { background: rgba(0,0,0,.3); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; }
+.roster summary { cursor: pointer; }
+.roster ul { margin: 8px 0 2px; padding-left: 18px; font-size: 13px; }
+.roster li { margin: 2px 0; }
+.similar { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
+.bad-text { color: var(--bad); font-weight: 700; }
+label.check { flex-direction: row; align-items: center; gap: 10px; font: 700 14px var(--display); letter-spacing: normal; text-transform: none; }
+label.check input { width: 20px; height: 20px; accent-color: var(--pink); }
+.chip.ok { background: rgba(127,216,166,.15); color: var(--good); }
+.chip.chat { background: rgba(247,168,211,.16); color: var(--pink-soft); }
 
 /* code cards: white for printing */
 .sheet { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -141,6 +153,7 @@ tr:last-child td { border-bottom: 0; }
     <div class="tabs" role="tablist" aria-label="Staff sections">
       <button class="tab" role="tab" id="t-athletes" aria-controls="tab-athletes" aria-selected="true" type="button">Athletes &amp; codes</button>
       <button class="tab" role="tab" id="t-add" aria-controls="tab-add" aria-selected="false" type="button">Add athletes</button>
+      <button class="tab" role="tab" id="t-teams" aria-controls="tab-teams" aria-selected="false" type="button">Teams</button>
       <button class="tab" role="tab" id="t-cards" aria-controls="tab-cards" aria-selected="false" type="button">Code cards</button>
       <button class="tab" role="tab" id="t-settings" aria-controls="tab-settings" aria-selected="false" type="button">Decision day</button>
     </div>
@@ -151,6 +164,8 @@ tr:last-child td { border-bottom: 0; }
         <div class="stat"><b id="sTotal">0</b><span>Athletes</span></div>
         <div class="stat"><b id="sCoded">0</b><span>With a code</span></div>
         <div class="stat"><b id="sNoCode">0</b><span>Need a code</span></div>
+        <div class="stat"><b id="sPlaced">0</b><span>Placed on a team</span></div>
+        <div class="stat"><b id="sAccepted">0</b><span>Accepted</span></div>
       </div>
       <div class="row">
         <button class="btn" id="genBtn" type="button" disabled>Generate codes</button>
@@ -162,8 +177,8 @@ tr:last-child td { border-bottom: 0; }
       </div>
       <div class="tablewrap">
         <table>
-          <thead><tr><th>Athlete</th><th>ID</th><th>Code</th><th>Parent</th><th></th></tr></thead>
-          <tbody id="rows"><tr><td colspan="5" class="sub">Loading…</td></tr></tbody>
+          <thead><tr><th>Athlete</th><th>ID</th><th>Code</th><th>Teams</th><th>Status</th><th>Parent</th><th></th></tr></thead>
+          <tbody id="rows"><tr><td colspan="7" class="sub">Loading…</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -201,6 +216,25 @@ tr:last-child td { border-bottom: 0; }
       </form>
     </section>
 
+    <!-- teams -->
+    <section class="panel" id="tab-teams" role="tabpanel" aria-labelledby="t-teams" hidden>
+      <h2>Upload team placements</h2>
+      <p class="help">Upload a CSV with <b>Athlete ID</b> and <b>Team 1, Team 2, Team 3</b> columns. Names are optional. Athletes need to be in the athlete list with a code first. Team names must match the site's team list. Placements stay locked until the Decision Day time. Uploading again updates teams and keeps every code and every family's response.</p>
+      <div class="row">
+        <button class="btn ghost" id="tTemplate" type="button">Download template</button>
+        <label for="tFile" class="btn ghost" style="flex-direction: row; font: 800 14px var(--display); letter-spacing: normal; text-transform: none">Choose CSV file<input id="tFile" type="file" accept=".csv,text/csv" hidden></label>
+      </div>
+      <label for="tText">Or paste rows here<textarea id="tText" placeholder="Athlete ID,First name,Last name,Team 1,Team 2,Team 3&#10;1042,Mia,Thompson,Pink Kitties,Tiny Diamonds,"></textarea></label>
+      <div id="tPreview" class="stack" hidden>
+        <p class="msg" id="tSum"></p>
+        <div id="tProblems"></div>
+        <div id="tSimilar"></div>
+        <div class="rosters" id="tRosters"></div>
+        <label class="check" for="tConfirm"><input type="checkbox" id="tConfirm"> I've checked every team roster above</label>
+        <div class="row"><button class="btn" id="tPublish" type="button" disabled>Publish placements</button><p class="msg" id="tMsg" aria-live="polite"></p></div>
+      </div>
+    </section>
+
     <!-- cards -->
     <section class="panel" id="tab-cards" role="tabpanel" aria-labelledby="t-cards" hidden>
       <h2>Code cards</h2>
@@ -229,6 +263,7 @@ tr:last-child td { border-bottom: 0; }
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js"></script>
+<script src="teams.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -261,6 +296,7 @@ function randomCode() {
 function uniqueCode(used) { let c; do { c = randomCode(); } while (used.has(c)); used.add(c); return c; }
 
 // ---------- data ----------
+let placements = new Map(); // code -> placement
 let roster = [];          // [{id, firstName, lastName, parentName, parentEmail, parentPhone, code}]
 let settings = { releaseAt: null, confirmBy: "" };
 const fullName = a => `${a.firstName || ""} ${a.lastName || ""}`.trim();
@@ -270,6 +306,8 @@ async function loadAll() {
   const snap = await getDocs(collection(db, "roster"));
   roster = snap.docs.map(d => ({ id: d.id, ...d.data() }))
     .sort((a, b) => (a.lastName || "").localeCompare(b.lastName || "") || (a.firstName || "").localeCompare(b.firstName || ""));
+  const ps = await getDocs(collection(db, "placements"));
+  placements = new Map(ps.docs.map(d => [d.id, d.data()]));
   const s = await getDoc(doc(db, "settings", "public"));
   if (s.exists()) { const d = s.data(); settings = { releaseAt: d.releaseAt ? d.releaseAt.toDate() : null, confirmBy: d.confirmBy || "" }; }
   renderAthletes(); renderCards(); renderSettings();
@@ -316,7 +354,7 @@ onAuthStateChanged(auth, async user => {
 });
 
 // ---------- tabs ----------
-const TABS = ["athletes", "add", "cards", "settings"];
+const TABS = ["athletes", "add", "teams", "cards", "settings"];
 TABS.forEach(t => $("t-" + t).addEventListener("click", () => {
   TABS.forEach(u => { $("t-" + u).setAttribute("aria-selected", String(u === t)); $("tab-" + u).hidden = u !== t; });
 }));
@@ -325,6 +363,8 @@ TABS.forEach(t => $("t-" + t).addEventListener("click", () => {
 function renderAthletes() {
   const coded = roster.filter(a => a.code).length;
   $("sTotal").textContent = roster.length; $("sCoded").textContent = coded; $("sNoCode").textContent = roster.length - coded;
+  $("sPlaced").textContent = roster.filter(a => a.code && placements.has(a.code)).length;
+  $("sAccepted").textContent = roster.filter(a => a.code && (placements.get(a.code) || {}).status === "accepted").length;
   $("genBtn").disabled = roster.length === coded;
   $("genBtn").textContent = roster.length === coded ? "Everyone has a code" : `Generate ${roster.length - coded} code${roster.length - coded === 1 ? "" : "s"}`;
   const q = $("search").value.trim().toLowerCase();
@@ -334,13 +374,22 @@ function renderAthletes() {
     return hay.includes(q) || hay.includes(q.replace(/[\s-]/g, ""));
   });
   const tb = $("rows"); tb.replaceChildren();
-  if (!list.length) { const tr = tb.insertRow(); const td = tr.insertCell(); td.colSpan = 5; td.className = "sub"; td.textContent = roster.length ? "No athletes match that search." : "No athletes yet. Add them in the Add athletes tab."; return; }
+  if (!list.length) { const tr = tb.insertRow(); const td = tr.insertCell(); td.colSpan = 7; td.className = "sub"; td.textContent = roster.length ? "No athletes match that search." : "No athletes yet. Add them in the Add athletes tab."; return; }
   list.forEach(a => {
     const tr = tb.insertRow();
     const n = tr.insertCell(); n.textContent = fullName(a);
-    const i = tr.insertCell(); i.textContent = a.id; i.className = "sub";
+    const i = tr.insertCell(); i.textContent = a.id; i.className = "sub"; i.style.whiteSpace = "nowrap";
     const c = tr.insertCell();
     if (a.code) { c.textContent = a.code; c.className = "code"; } else { const s = document.createElement("span"); s.className = "chip none"; s.textContent = "No code yet"; c.append(s); }
+    const pl = a.code ? placements.get(a.code) : null;
+    const tm = tr.insertCell(); tm.textContent = pl && pl.teams ? pl.teams.join(", ") : ""; if (!pl) tm.className = "sub";
+    const stc = tr.insertCell(); const ch = document.createElement("span");
+    if (!pl) { ch.className = "chip none"; ch.textContent = "No teams yet"; }
+    else if (pl.status === "accepted") { ch.className = "chip ok"; ch.textContent = "Accepted"; }
+    else if (pl.status === "chat") { ch.className = "chip chat"; ch.textContent = "Wants a chat"; }
+    else if (pl.openedAt) { ch.className = "chip upd"; ch.textContent = "Opened"; }
+    else { ch.className = "chip upd"; ch.textContent = "Not opened"; }
+    stc.append(ch);
     const p = tr.insertCell(); p.append(a.parentName || ""); if (a.parentEmail) { const s = document.createElement("div"); s.className = "sub"; s.textContent = a.parentEmail; p.append(s); }
     const act = tr.insertCell(); act.style.textAlign = "right";
     if (a.code) act.append(resetButton(a));
@@ -358,7 +407,15 @@ function resetButton(a) {
     yes.onclick = async () => {
       yes.disabled = true;
       const code = uniqueCode(usedCodes());
-      try { await setDoc(doc(db, "roster", a.id), { code, codeReplacedAt: serverTimestamp() }, { merge: true }); a.code = code; renderAthletes(); renderCards(); say("genMsg", `${fullName(a)} has a new code: ${code}`, "ok"); }
+      try {
+        // move their placement (if any) to the new code so the old card stops working
+        const b = writeBatch(db), old = a.code, pl = placements.get(old);
+        b.set(doc(db, "roster", a.id), { code, codeReplacedAt: serverTimestamp() }, { merge: true });
+        if (pl) { b.set(doc(db, "placements", code), pl); b.delete(doc(db, "placements", old)); }
+        await b.commit();
+        if (pl) { placements.set(code, pl); placements.delete(old); }
+        a.code = code; renderAthletes(); renderCards(); say("genMsg", `${fullName(a)} has a new code: ${code}`, "ok");
+      }
       catch (e) { say("genMsg", "Couldn't save the new code. Try again.", "err"); yes.disabled = false; }
     };
     wrap.append(t, yes, no);
@@ -377,8 +434,8 @@ $("genBtn").addEventListener("click", async () => {
   renderAthletes(); renderCards();
 });
 $("exportBtn").addEventListener("click", () => {
-  const rows = [["Athlete ID", "First name", "Last name", "Code", "Parent name", "Parent email", "Parent phone"]]
-    .concat(roster.map(a => [a.id, a.firstName, a.lastName, a.code || "", a.parentName || "", a.parentEmail || "", a.parentPhone || ""]));
+  const rows = [["Athlete ID", "First name", "Last name", "Code", "Teams", "Status", "Parent name", "Parent email", "Parent phone"]]
+    .concat(roster.map(a => { const pl = a.code ? placements.get(a.code) : null; return [a.id, a.firstName, a.lastName, a.code || "", pl ? (pl.teams || []).join(" / ") : "", pl ? pl.status || "pending" : "", a.parentName || "", a.parentEmail || "", a.parentPhone || ""]; }));
   download("eod-athlete-codes.csv", rows.map(r => r.map(csvCell).join(",")).join("\n"));
 });
 
@@ -423,6 +480,7 @@ function buildPreview(text) {
   });
   pending.forEach(a => { if (!a.problem && seen.get(a.id) > 1) { a.problem = "Duplicate athlete ID"; a.status = "bad"; } });
   const bad = pending.filter(a => a.status === "bad").length, nw = pending.filter(a => a.status === "new").length, up = pending.filter(a => a.status === "upd").length;
+  if (!pending.length) { say("previewSum", "No athlete rows found. Check the file has athletes under the heading row.", "err"); $("saveBtn").disabled = true; $("previewRows").replaceChildren(); return; }
   say("previewSum", bad ? `${bad} row${bad === 1 ? "" : "s"} need fixing before you can save. ${nw} new, ${up} updates.` : `${nw} new athlete${nw === 1 ? "" : "s"}, ${up} update${up === 1 ? "" : "s"}. Ready to save.`, bad ? "err" : "ok");
   $("saveBtn").disabled = !!bad || !pending.length;
   const tb = $("previewRows"); tb.replaceChildren();
@@ -459,6 +517,139 @@ $("oneForm").addEventListener("submit", async e => {
     await loadAll(); e.target.reset();
     say("oneMsg", `${a.firstName}'s code: ${code}`, "ok");
   } catch (err) { say("oneMsg", "Couldn't save. Try again.", "err"); }
+});
+
+
+// ---------- teams ----------
+const CFG = window.EOD_CONFIG || { season: 2027, teams: {} };
+const norm = s => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const TEAM_KEYS = new Map(Object.keys(CFG.teams).map(n => [norm(n), n]));
+const TEAM_ORDER = Object.keys(CFG.teams);
+let pendingTeams = [];
+
+function lev(a, b) {
+  const m = a.length, n = b.length, d = Array.from({ length: m + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= n; j++) d[0][j] = j;
+  for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++)
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[m][n];
+}
+const close = (a, b) => a === b || (Math.min(a.length, b.length) >= 3 && 1 - lev(a, b) / Math.max(a.length, b.length) >= .55) || a.startsWith(b) || b.startsWith(a);
+function similarNames(list) {
+  const out = [];
+  for (let i = 0; i < list.length; i++) for (let j = i + 1; j < list.length; j++) {
+    const a = list[i], b = list[j];
+    const af = norm(a.firstName), al = norm(a.lastName), bf = norm(b.firstName), bl = norm(b.lastName);
+    if (af === bf && al === bl) { out.push([a, b]); continue; }
+    if ((al === bl && af !== bf && close(af, bf)) || (af === bf && al !== bl && close(al, bl))) out.push([a, b]);
+  }
+  return out;
+}
+
+function buildTeamsPreview(text) {
+  const rows = parseCSV(text);
+  $("tPreview").hidden = !rows.length;
+  if (!rows.length) return;
+  const head = rows[0].map(h => h.toLowerCase().replace(/[^a-z0-9]/g, ""));
+  const idCol = head.findIndex(h => HEAD.id.includes(h));
+  const fCol = head.findIndex(h => HEAD.firstName.includes(h)), lCol = head.findIndex(h => HEAD.lastName.includes(h));
+  const teamCols = head.map((h, i) => (/^team\d*$/.test(h) ? i : -1)).filter(i => i >= 0);
+  if (idCol < 0 || !teamCols.length) {
+    say("tSum", "The first row needs headings: Athlete ID, then Team 1, Team 2 and so on.", "err");
+    $("tPublish").disabled = true; $("tProblems").replaceChildren(); $("tRosters").replaceChildren(); $("tSimilar").replaceChildren(); return;
+  }
+  const byId = new Map(roster.map(a => [a.id, a])), seen = new Map();
+  pendingTeams = rows.slice(1).map(r => {
+    const id = (r[idCol] || "").trim().replace(/\//g, "-");
+    const a = byId.get(id);
+    const raw = teamCols.map(i => (r[i] || "").trim()).filter(Boolean);
+    const teams = [], problems = [], notes = [];
+    raw.forEach(t => { const c = TEAM_KEYS.get(norm(t)); if (!c) problems.push(`Unknown team "${t}"`); else if (!teams.includes(c)) teams.push(c); });
+    if (!id) problems.unshift("Missing athlete ID");
+    else if (!a) problems.unshift("Not in the athlete list. Add them first");
+    else if (!a.code) problems.unshift("No code yet. Generate codes first");
+    if (!raw.length) problems.push("No team");
+    if (id) seen.set(id, (seen.get(id) || 0) + 1);
+    if (a && fCol >= 0 && r[fCol] && norm(r[fCol]) !== norm(a.firstName)) notes.push("First name differs from athlete list");
+    const name = a ? fullName(a) : [r[fCol] || "", r[lCol] || ""].join(" ").trim() || "(no name)";
+    return { id, a, name, teams, problems, notes };
+  }).filter(p => p.id || p.teams.length || p.problems.length > 1);
+  pendingTeams.forEach(p => { if (p.id && seen.get(p.id) > 1 && !p.problems.includes("Listed twice")) p.problems.push("Listed twice"); });
+
+  const bad = pendingTeams.filter(p => p.problems.length);
+  const ok = pendingTeams.filter(p => !p.problems.length);
+  const multi = ok.filter(p => p.teams.length > 1).length;
+  say("tSum", bad.length
+    ? `${bad.length} row${bad.length === 1 ? "" : "s"} need fixing before you can publish. ${ok.length} ready.`
+    : `${ok.length} athletes ready. ${multi} on more than one team. Check the rosters below, then publish.`, bad.length ? "err" : "ok");
+
+  // problems
+  const pb = $("tProblems"); pb.replaceChildren();
+  if (bad.length) {
+    const w = document.createElement("div"); w.className = "tablewrap";
+    const tb = document.createElement("table"); tb.innerHTML = "<thead><tr><th>Athlete</th><th>ID</th><th>Fix this</th></tr></thead>";
+    const body = tb.createTBody();
+    bad.forEach(p => { const tr = body.insertRow(); tr.insertCell().textContent = p.name; tr.insertCell().textContent = p.id; const c = tr.insertCell(); c.className = "bad-text"; c.textContent = p.problems.join(" · "); });
+    w.append(tb); pb.append(w);
+  }
+
+  // rosters per team
+  const rs = $("tRosters"); rs.replaceChildren();
+  const byTeam = new Map(TEAM_ORDER.map(t => [t, []]));
+  ok.forEach(p => p.teams.forEach(t => byTeam.get(t).push(p)));
+  byTeam.forEach((list, team) => {
+    if (!list.length) return;
+    const d = document.createElement("details"); d.className = "roster";
+    const s = document.createElement("summary");
+    const b = document.createElement("b"); b.textContent = team;
+    const n = document.createElement("span"); n.className = "sub"; n.textContent = ` ${list.length} athlete${list.length === 1 ? "" : "s"} · ${CFG.teams[team].discipline}`;
+    s.append(b, n); d.append(s);
+    const ul = document.createElement("ul");
+    list.slice().sort((x, y) => x.name.localeCompare(y.name)).forEach(p => {
+      const li = document.createElement("li"); li.textContent = p.name;
+      const others = p.teams.filter(t => t !== team);
+      if (others.length) { const o = document.createElement("span"); o.className = "sub"; o.textContent = ` also ${others.join(", ")}`; li.append(o); }
+      ul.append(li);
+    });
+    d.append(ul); rs.append(d);
+  });
+
+  // possible duplicates (doesn't block)
+  const sm = $("tSimilar"); sm.replaceChildren();
+  const pairs = similarNames(ok.map(p => p.a));
+  if (pairs.length) {
+    const h = document.createElement("p"); h.className = "msg warn"; h.textContent = `${pairs.length} pair${pairs.length === 1 ? "" : "s"} of names look alike. Check they're different athletes, not one athlete entered twice:`;
+    const ul = document.createElement("ul"); ul.className = "similar";
+    const teamsOf = a => (pendingTeams.find(p => p.a === a) || {}).teams || [];
+    pairs.forEach(([a, b]) => { const li = document.createElement("li"); li.textContent = `${fullName(a)} (${teamsOf(a).join(", ")})  ·  ${fullName(b)} (${teamsOf(b).join(", ")})`; ul.append(li); });
+    sm.append(h, ul);
+  }
+  $("tConfirm").checked = false;
+  syncPublish();
+}
+function syncPublish() {
+  const bad = pendingTeams.some(p => p.problems.length);
+  $("tPublish").disabled = bad || !pendingTeams.length || !$("tConfirm").checked;
+}
+$("tConfirm").addEventListener("change", syncPublish);
+$("tText").addEventListener("input", () => buildTeamsPreview($("tText").value));
+$("tFile").addEventListener("change", async e => { const f = e.target.files[0]; if (!f) return; const t = await f.text(); $("tText").value = t; buildTeamsPreview(t); });
+$("tTemplate").addEventListener("click", () => download("eod-teams-template.csv", "Athlete ID,First name,Last name,Team 1,Team 2,Team 3\n"));
+$("tPublish").addEventListener("click", async () => {
+  $("tPublish").disabled = true; say("tMsg", "Publishing…");
+  const ops = [];
+  pendingTeams.forEach(p => {
+    const a = p.a, existing = placements.get(a.code);
+    ops.push([doc(db, "placements", a.code), {
+      athleteId: a.id, firstName: a.firstName || "", lastName: a.lastName || "", teams: p.teams, season: CFG.season,
+      updatedAt: serverTimestamp(), ...(existing ? {} : { status: "pending" })
+    }]);
+    ops.push([doc(db, "roster", a.id), { teams: p.teams, updatedAt: serverTimestamp() }]);
+  });
+  try {
+    await commitAll(ops); await loadAll();
+    say("tMsg", `Published ${pendingTeams.length} placement${pendingTeams.length === 1 ? "" : "s"}. They stay locked until the Decision Day time.`, "ok");
+  } catch (e) { say("tMsg", "Couldn't publish. Nothing was changed. Check your internet and try again.", "err"); syncPublish(); }
 });
 
 // ---------- cards ----------

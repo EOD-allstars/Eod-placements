@@ -783,15 +783,13 @@ const S = (() => {
 
   // ---------- decision day ----------
   const SET = { releaseAt: new Date(CFG.defaultRelease), confirmBy: "" };
-  // Staff demo: one built-in code. Real athlete codes and saving come later with Firestore.
+  // EOD is the built-in staff demo. Every other code is looked up in Firestore.
   const DEMO = {
     EOD: { demo: true, firstName: "Mia", lastName: "Thompson", teams: ["Pink Kitties", "Tiny Diamonds", "Open Premier", "Notorious"], status: "pending" }
   };
-  const dbReady = Promise.resolve({
-    async settings() { return null; },
-    async lookup(code) { return DEMO[code] ? { code, ...DEMO[code] } : null; },
-    async opened() {},
-    async respond() {}
+  const dbReady = new Promise(res => {
+    if (window.EODdb) return res(window.EODdb);
+    window.addEventListener("eoddb", () => res(window.EODdb), { once: true });
   });
   const withTimeout = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))]);
   const fmtDay = new Intl.DateTimeFormat("en-AU", { timeZone: "Australia/Sydney", weekday: "long", day: "numeric", month: "long" });
@@ -832,11 +830,16 @@ const S = (() => {
     e.preventDefault();
     const code = normCode($("athleteCode").value.trim()), msg = $("codeMsg"), btn = $("enter");
     if (!code) return codeError("Enter the code from your athlete card.");
-        btn.disabled = true; msg.classList.remove("err"); msg.textContent = "Checking your code…";
+        if (!DEMO[code] && !live()) return codeError(`Reveals open ${releaseLabel()}. See you then!`);
+    btn.disabled = true; msg.classList.remove("err"); msg.textContent = "Checking your code…";
     let p = null;
-    try { const d = await withTimeout(dbReady, 8000); p = await withTimeout(d.lookup(code), 10000); }
+    try {
+      if (DEMO[code]) p = { code, ...DEMO[code] };
+      else { const d = await withTimeout(dbReady, 8000); p = await withTimeout(d.lookup(code), 10000); }
+    }
     catch (err) { btn.disabled = false; return codeError("We couldn't connect. Check your internet and try again."); }
     btn.disabled = false;
+    if (p && p.locked) return codeError(`Reveals open ${releaseLabel()}. See you then!`);
     if (!p) return codeError("That code doesn't match an athlete. Check your card and try again.");
     if (!Array.isArray(p.teams) || !p.teams.length) return codeError("Your placement isn't ready yet. Please contact the gym.");
     P = p;
@@ -1019,5 +1022,6 @@ const S = (() => {
   $("chat").addEventListener("click", () => respond("chat"));
 })();
 </script>
+<script type="module" src="db.js"></script>
 </body>
 </html>
