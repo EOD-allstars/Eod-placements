@@ -32,11 +32,11 @@ body { background: var(--ink); color: var(--chrome); font-family: var(--display)
 
 .stage {
   position: relative; height: 100%; box-sizing: border-box;
-  display: grid; place-items: center; grid-template-rows: minmax(0, 1fr);
+  display: grid; place-items: center; grid-template-rows: minmax(0, 1fr); grid-template-columns: minmax(0, 1fr);
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 64px 24px;
-  background: var(--ink); isolation: isolate; overflow: hidden;
+  background: var(--ink); isolation: isolate; overflow: hidden; overflow: clip;
   transition: color .8s ease;
 }
 .ambient { position: absolute; inset: 0; z-index: -1; pointer-events: none;
@@ -370,6 +370,87 @@ button:disabled { opacity: .6; cursor: default; }
   .grain, .beam, .play, .halo { animation: none !important; }
   .leak.go { animation: none !important; }
 }
+
+/* ---------- big screens: scale text and logos with the screen (phones unchanged) ---------- */
+@media (min-width: 900px) and (min-height: 560px) {
+  .scene { width: min(100%, 1500px); gap: 2.4vh; }
+  .eyebrow { font-size: clamp(13px, 1.9vh, 22px); }
+
+  /* login + start */
+  .gate-logo, .eod { width: clamp(150px, 20vh, 260px); }
+  .gate-title { font-size: min(9vw, 13vh); }
+  .count { width: min(100%, 760px); }
+  .cell { max-width: 170px; padding: 2vh 8px 1.6vh; }
+  .cell b { font-size: clamp(30px, 6vh, 64px); }
+  .cell span { font-size: clamp(10px, 1.3vh, 14px); }
+  .gate-date { font-size: clamp(13px, 1.9vh, 20px); }
+  .code { width: min(100%, 680px); gap: 1.2vh; }
+  .code label { font-size: clamp(11px, 1.5vh, 15px); }
+  .code input { font-size: clamp(17px, 2.6vh, 26px); padding: 1.8vh 26px; }
+  .code .btn, .play { font-size: clamp(16px, 2.4vh, 24px); padding: 1.8vh 34px; }
+  .code-msg, .hint { font-size: clamp(13px, 1.8vh, 18px); }
+  .start-name { font-size: min(6.5vw, 10vh); }
+  .start-sub { font-size: clamp(16px, 2.4vh, 26px); }
+  #toSummary { font-size: clamp(14px, 2vh, 20px); }
+
+  /* trailer text */
+  .w-small { font-size: clamp(14px, 2.4vh, 26px); }
+  .w-big { font-size: min(10vw, 16vh); }
+  .w-dance { font-size: min(7.6vw, 12vh); }
+  .mega { font-size: min(10vw, 17vh); }
+  .pre { font-size: clamp(14px, 2.2vh, 24px); }
+  .moment { font-size: min(5.6vw, 9vh); }
+  .wipe { font-size: min(8vw, 14vh); }
+  .wipe.long { font-size: min(6.4vw, 11vh); }
+  .best .b1, .best .b3 { font-size: min(11vw, 18vh); }
+  .best .b2 { font-size: min(7vw, 11vh); }
+  .slam-line { font-size: min(10vw, 16vh); }
+
+  /* name shuffle */
+  .load-who { font-size: clamp(16px, 2.8vh, 32px); }
+  .slot { width: min(100%, 1300px); height: 18vh; }
+  .slot span { font-size: min(5.4vw, 9vh); }
+  .fuse { width: min(70%, 640px); height: 4px; }
+
+  /* team reveal */
+  .cmini { font-size: clamp(40px, 8vh, 110px); }
+  .logo-wrap { width: min(92vw, 88vh, 1100px); }
+  .logo-wrap.tall { width: min(60vw, 46vh, 620px); }
+  .logo-text { font-size: min(10vw, 16vh); }
+  .team-name { font-size: clamp(16px, 2.8vh, 32px); }
+
+  /* all teams screen */
+  .duo { width: min(100%, 1500px); }
+  .duo img, .duo .logo-text { max-height: 46vh; object-fit: contain; }
+  .duo .amp { font-size: min(7vw, 11vh); }
+  .duo .logo-text { font-size: min(4.6vw, 7vh); }
+  .welcome { font-size: clamp(22px, 4.6vh, 56px); }
+  .next .btn { font-size: clamp(16px, 2.4vh, 24px); padding: 1.8vh 34px; }
+
+  /* summary */
+  .sum { width: min(100%, 1280px); gap: 1.6vh; }
+  .sum-head { gap: .6vh; }
+  .sum-head .eyebrow { font-size: clamp(14px, 2.4vh, 26px); }
+  .sum-head h2 { font-size: clamp(30px, 6vh, 72px); }
+  .sum-head p { font-size: clamp(15px, 2.4vh, 24px); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(440px, 1fr)); gap: 1.6vh; }
+  .card { padding: 1.3vh 1.6vh; gap: 2.4vh; border-radius: 20px; }
+  .tile { width: clamp(120px, 18vh, 230px); height: clamp(96px, 14vh, 180px); border-radius: 14px; }
+  .tile img { max-height: calc(clamp(96px, 14vh, 180px) - 14px); }
+  .tile .logo-text { font-size: clamp(13px, 1.9vh, 20px); }
+  .card-body { gap: .5vh; }
+  .card-body h3 { font-size: clamp(18px, 3.2vh, 36px); }
+  .kind { font-size: clamp(10px, 1.5vh, 16px); }
+  .train span { font-size: clamp(14px, 2.2vh, 24px); gap: 14px; }
+  .train b { font-size: clamp(10px, 1.5vh, 16px); width: auto; min-width: 3.4em; }
+  .replays .linkish { font-size: clamp(13px, 1.9vh, 20px); }
+  .sum-foot { gap: 1.2vh; padding-top: 3vh; }
+  .deadline { font-size: clamp(14px, 2.2vh, 24px); }
+  .sum-foot { width: min(100%, 860px); align-self: center; }
+  .sum-foot .btn { font-size: clamp(18px, 3vh, 32px); padding: 2.2vh 40px; border-width: 3px; }
+  .note { font-size: clamp(14px, 2vh, 20px); }
+  .ctl { font-size: 15px; padding: 10px 16px; }
+}
 </style>
 
 </head>
@@ -661,6 +742,7 @@ const S = (() => {
   let token = 0;
   const wait = (ms, tk) => new Promise((res, rej) => setTimeout(() => (tk === token ? res() : rej(0)), ms));
   function show(id) {
+    stage.scrollTop = 0; stage.scrollLeft = 0;
     scenes.forEach(s => {
       const on = s.id === id;
       s.classList.toggle("off", !on && s.classList.contains("on"));
