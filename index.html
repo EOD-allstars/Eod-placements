@@ -7,7 +7,7 @@
 <title>EOD Decision Day</title>
 <meta name="description" content="EOD Allstars 2027 team reveals. Enter your athlete code to see your placement.">
 <link rel="icon" href="eod-logo.png">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Michroma&family=Montserrat:wght@500;600;700;800;900&family=Yellowtail&family=Pinyon+Script&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Michroma&family=Montserrat:wght@500;600;700;800;900&family=Yellowtail&family=Pinyon+Script&display=swap">
 <style>
 html, body { margin: 0; } [hidden] { display: none !important; } img { max-width: 100%; }
 
@@ -462,6 +462,66 @@ button:disabled { opacity: .6; cursor: default; }
 .lite .rv-img.burst { animation-name: rvBurstLite; }
 @keyframes rvBurstLite { 0% { opacity: 0; transform: scale(.2); animation-timing-function: cubic-bezier(.2,.75,.3,1); } 6% { opacity: 1; } 42% { opacity: 1; transform: scale(1.12); } 70% { transform: scale(.97); } 100% { opacity: 1; transform: none; } }
 .lite .rv-img.float { filter: none; animation: none; }
+
+/* ---------- "Up next" silver dance button with countdown ---------- */
+.next { display: flex; flex-direction: column; align-items: center; gap: 1.6vh; }
+.next .dance-cue { display: none; }
+.next.dnext .dance-cue { display: flex; }
+.next.dnext #toNext { display: none; }
+.next.dnext { opacity: 1; transition: none; }
+.dance-cue { flex-direction: column; align-items: center; gap: 1.6vh; }
+.upnext { margin: 0; display: flex; align-items: center; gap: 14px; font: 400 clamp(12px, 1.8vh, 18px) var(--wide); letter-spacing: .45em; text-transform: uppercase; color: #FFFFFF;
+  text-shadow: 0 0 18px rgba(255,255,255,.6); opacity: 0; transform: translateY(8px); padding-left: .45em; }
+.upnext::before, .upnext::after { content: ""; width: clamp(28px, 6vw, 70px); height: 1px; background: linear-gradient(90deg, transparent, #fff); }
+.upnext::after { background: linear-gradient(90deg, #fff, transparent); }
+.teaser .upnext { animation: upIn .6s ease forwards, upGlow 1.8s ease-in-out .6s infinite; }
+@keyframes upIn { to { opacity: 1; transform: none; } }
+@keyframes upGlow { 50% { text-shadow: 0 0 26px rgba(255,255,255,.95), 0 0 50px rgba(255,79,168,.6); } }
+.dholder { position: relative; display: inline-block; opacity: 0; transform: scale(2.2); filter: blur(10px); }
+.slam .dholder { animation: dSlam .34s cubic-bezier(.6,0,1,.6) forwards, dSettle .5s ease-out .34s; }
+@keyframes dSlam { to { opacity: 1; transform: none; filter: none; } }
+@keyframes dSettle { 30% { transform: scale(.95); } 100% { transform: none; } }
+.dholder::after { content: ""; position: absolute; left: 50%; top: 50%; width: 320%; aspect-ratio: 2; translate: -50% -50%; z-index: 4; pointer-events: none; opacity: 0; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255,255,255,.95), rgba(220,216,230,.4) 45%, transparent); }
+.slam .dholder::after { animation: dFlash .5s ease-out .3s; }
+@keyframes dFlash { 0% { opacity: 1; } 100% { opacity: 0; } }
+.dedge { position: relative; display: inline-block; padding: 3px; border-radius: 21px; overflow: hidden; box-shadow: 0 0 30px rgba(255,255,255,.25), 0 16px 34px rgba(0,0,0,.5); }
+.dedge::before { content: ""; position: absolute; inset: -60%; z-index: 0;
+  background: conic-gradient(from 0deg, #8E8A96, #FFFFFF 8%, #8E8A96 16%, #8E8A96 50%, #FFFFFF 58%, #8E8A96 66%, #8E8A96); animation: dSpin 2.6s linear infinite; }
+@keyframes dSpin { to { rotate: 360deg; } }
+.dedge::after { content: ""; position: absolute; inset: 0; z-index: 0; border-radius: 21px;
+  background: conic-gradient(from -90deg, #FFFFFF 0deg, #FFE6F3 var(--deg, 0deg), transparent var(--deg, 0deg)); filter: drop-shadow(0 0 6px #fff); }
+.dbtn { position: relative; z-index: 1; display: block; font: 400 clamp(22px, 4.2vh, 40px) "Anton", Impact, "Arial Narrow", sans-serif; letter-spacing: .06em; text-transform: uppercase; color: #1A1820; cursor: pointer; white-space: nowrap;
+  padding: clamp(16px, 2.6vh, 28px) clamp(30px, 6vh, 72px); border-radius: 18px; border: 0; overflow: hidden; isolation: isolate;
+  background: linear-gradient(180deg, #FFFFFF 0%, #E4E1E8 22%, #B9B4C0 48%, #8E8A96 52%, #C9C5CF 76%, #F4F2F6 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.95), inset 0 -2px 0 rgba(0,0,0,.25); text-shadow: 0 1px 0 rgba(255,255,255,.7); transition: transform .15s ease; }
+.dbtn:hover { transform: scale(1.02); }
+.dbtn:active { transform: scale(.98); }
+.dbtn:focus-visible { outline: 3px solid #fff; outline-offset: 6px; }
+.dbtn span { position: relative; z-index: 2; }
+.dbtn::after { content: ""; position: absolute; top: -20%; bottom: -20%; left: -40%; width: 22%; z-index: 1; transform: skewX(-22deg);
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.85), rgba(255,255,255,0)); animation: dSweep 3.4s ease-in-out infinite; }
+@keyframes dSweep { 0%, 35% { left: -40%; } 75%, 100% { left: 120%; } }
+.dspark { position: absolute; z-index: 3; width: 20px; height: 20px; pointer-events: none; opacity: 0; animation: dTw 2.2s ease-in-out infinite; }
+.dspark::before, .dburst i { content: ""; position: absolute; inset: 0; background: #fff;
+  clip-path: polygon(50% 0, 58% 42%, 100% 50%, 58% 58%, 50% 100%, 42% 58%, 0 50%, 42% 42%); filter: drop-shadow(0 0 4px #fff); }
+@keyframes dTw { 0%, 100% { opacity: 0; transform: scale(.3) rotate(0deg); } 45% { opacity: 1; transform: scale(1) rotate(45deg); } 60% { opacity: 0; transform: scale(.4) rotate(70deg); } }
+.dspark:nth-of-type(1) { left: -7px; top: -9px; }
+.dspark:nth-of-type(2) { right: 10%; top: -11px; animation-delay: .7s; }
+.dspark:nth-of-type(3) { right: -9px; bottom: -7px; animation-delay: 1.3s; }
+.dspark:nth-of-type(4) { left: 22%; bottom: -11px; animation-delay: 1.8s; }
+.dburst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; z-index: 4; }
+.dburst i { inset: auto; width: 14px; height: 14px; margin: -7px; opacity: 0; }
+.slam .dburst i { animation: dFly .9s cubic-bezier(.15,.8,.3,1) .3s forwards; }
+@keyframes dFly { 0% { opacity: 1; transform: translate(0,0) scale(.4); } 70% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--x), var(--y)) scale(1) rotate(90deg); } }
+.dcount { margin: 0; min-height: 1.3em; font: 700 clamp(13px, 2vh, 20px) var(--display); color: rgba(236,233,239,.85); opacity: 0; transition: opacity .5s ease; }
+.counting .dcount { opacity: 1; }
+.dcount b { font-variant-numeric: tabular-nums; color: #FFFFFF; }
+@media (max-width: 560px) { .dbtn { padding: 16px 22px; font-size: clamp(18px, 6vw, 24px); } }
+.lite .dedge::before { animation-duration: 4s; }
+.lite .dspark::before, .lite .dburst i, .lite .dedge::after { filter: none; }
+@media (prefers-reduced-motion: reduce) { .dedge::before, .dbtn::after, .dspark, .teaser .upnext { animation: none; } }
+
 /* ---------- big screens: scale text and logos with the screen (phones unchanged) ---------- */
 @media (min-width: 900px) and (min-height: 560px) {
   .scene { width: min(100%, 1500px); gap: 2.4vh; }
@@ -672,7 +732,18 @@ button:disabled { opacity: .6; cursor: default; }
   <section class="scene" id="all">
     <div class="duo" id="allLogos"></div>
     <p class="welcome" id="allText"></p>
-    <div class="next"><button class="btn" id="toNext" type="button">See my placements</button></div>
+    <div class="next" id="allNext">
+      <div class="dance-cue">
+        <p class="upnext">Up next</p>
+        <span class="dholder">
+          <i class="dspark"></i><i class="dspark"></i><i class="dspark"></i><i class="dspark"></i>
+          <span class="dburst" id="dBurst" aria-hidden="true"></span>
+          <span class="dedge" id="dEdge"><button class="dbtn" id="toDance" type="button"><span id="toDanceText">Reveal my dance team</span></button></span>
+        </span>
+        <p class="dcount" id="dCount" aria-live="polite">Starting in <b id="dSec">8</b>…</p>
+      </div>
+      <button class="btn" id="toNext" type="button">See my placements</button>
+    </div>
   </section>
 
   <section class="scene" id="d-welcome">
@@ -1322,9 +1393,45 @@ const S = (() => {
       const b = document.createElement("b"); b.textContent = t; txt.append(b);
     });
     const next = danceOf().length;
-    $("toNext").textContent = next ? "Now for your dance placements" : "See my placements";
-    $("toNext").onclick = next ? playDance : () => summary();
+    $("toNext").textContent = "See my placements";
+    $("toNext").onclick = () => summary();
     show("all");
+    danceCue(next);
+  }
+  // "Up next": the silver button slams in, then a countdown runs round its edge and starts the dance reveal on its own
+  const DANCE_COUNT = 8;
+  let cueTimers = [], cueRaf = 0;
+  (() => {
+    const box = $("dBurst");
+    for (let i = 0; i < 16; i++) {
+      const a = i / 16 * Math.PI * 2 + Math.random() * .3, d = 90 + Math.random() * 110, s = document.createElement("i");
+      s.style.setProperty("--x", Math.cos(a) * d * 1.6 + "px"); s.style.setProperty("--y", Math.sin(a) * d * .7 + "px"); box.append(s);
+    }
+  })();
+  function stopCue() { cueTimers.forEach(clearTimeout); cueTimers = []; cancelAnimationFrame(cueRaf); cueRaf = 0; }
+  function danceCue(n) {
+    stopCue();
+    const nx = $("allNext"), edge = $("dEdge"), tk = token;
+    nx.className = "next" + (n ? " dnext" : "");
+    edge.style.setProperty("--deg", "0deg"); $("dSec").textContent = DANCE_COUNT;
+    $("toDanceText").textContent = n > 1 ? "Reveal my dance teams" : "Reveal my dance team";
+    if (!n) return;
+    const go = () => { stopCue(); if (tk === token && $("all").classList.contains("on")) playDance(); };
+    $("toDance").onclick = go;
+    const later = (ms, fn) => cueTimers.push(setTimeout(() => { if (tk === token) fn(); }, ms));
+    later(1700, () => nx.classList.add("teaser"));
+    later(2300, () => nx.classList.add("slam"));
+    later(3300, () => {
+      nx.classList.add("counting");
+      const t0 = performance.now();
+      (function tick(now) {
+        if (tk !== token || !$("all").classList.contains("on")) return stopCue();
+        const p = Math.min(1, (now - t0) / (DANCE_COUNT * 1000));
+        edge.style.setProperty("--deg", (p * 360).toFixed(1) + "deg");
+        $("dSec").textContent = Math.max(1, Math.ceil(DANCE_COUNT * (1 - p)));
+        if (p < 1) cueRaf = requestAnimationFrame(tick); else go();
+      })(t0);
+    });
   }
 
   // ---------- decision day ----------
