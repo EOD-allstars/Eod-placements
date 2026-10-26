@@ -390,6 +390,26 @@ button:disabled { opacity: .6; cursor: default; }
   .leak.go { animation: none !important; }
 }
 
+
+/* ---------- rewind blast reveal ---------- */
+.rvfx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+#rv.scene { transform: none !important; transition: opacity .15s ease, visibility 0s !important; }
+.rv-img { position: relative; z-index: 1; width: 100%; height: auto; display: block; opacity: 0; }
+#rv.landed .rv-img { opacity: 1; animation: settle .5s ease-out; }
+#rv .cmini, #rv .team-name { opacity: 0; transform: translateY(8px); transition: opacity .6s ease .2s, transform .6s ease .2s; }
+#rv.landed .cmini, #rv.landed .team-name { opacity: 1; transform: none; }
+/* pink beams bursting from behind the logo */
+.rays { position: absolute; left: 50%; top: 50%; width: 230%; aspect-ratio: 1; translate: -50% -50%; z-index: 0; pointer-events: none; opacity: 0; transform: scale(.6);
+  transition: opacity .9s ease, transform 1.2s cubic-bezier(.15,.8,.2,1); }
+#rv.landed .rays { opacity: 1; transform: none; }
+.rays i { position: absolute; inset: 0; border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, rgba(255,79,168,0) 0deg, rgba(255,79,168,.42) 2.5deg, rgba(255,140,200,.18) 4.5deg, rgba(255,79,168,0) 7deg, rgba(255,79,168,0) 16deg);
+  -webkit-mask-image: radial-gradient(closest-side, #000 14%, rgba(0,0,0,.55) 40%, transparent 72%); mask-image: radial-gradient(closest-side, #000 14%, rgba(0,0,0,.55) 40%, transparent 72%);
+  animation: raysSpin 70s linear infinite, raysPulse var(--beat2, .743s) ease-in-out infinite; }
+.rays::after { content: ""; position: absolute; inset: 30%; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,79,168,.35), transparent 75%); }
+@keyframes raysSpin { to { rotate: 360deg; } }
+@keyframes raysPulse { 0%, 100% { opacity: .6; } 15% { opacity: 1; } }
+.lite .rays i { animation: raysPulse var(--beat2, .743s) ease-in-out infinite; }
 /* ---------- big screens: scale text and logos with the screen (phones unchanged) ---------- */
 @media (min-width: 900px) and (min-height: 560px) {
   .scene { width: min(100%, 1500px); gap: 2.4vh; }
@@ -627,6 +647,7 @@ button:disabled { opacity: .6; cursor: default; }
     </div>
   </section>
 
+  <canvas class="rvfx" id="rvFx" aria-hidden="true"></canvas>
   <div class="vignette" aria-hidden="true"></div>
   <div class="grain" id="grain" aria-hidden="true"></div>
   <div class="bar top" aria-hidden="true"></div>
@@ -907,17 +928,145 @@ const S = (() => {
     if (t.logo) { const i = document.createElement("img"); i.src = t.logo; i.alt = team; if (cls) i.className = cls; return i; }
     const p = document.createElement("p"); p.className = "logo-text" + (cls ? " " + cls : ""); p.textContent = team; return p;
   }
-  function revealTeam(team, i) {
-    $("rvMini").textContent = i === 0 ? `Congratulations, ${P.firstName}` : "And";
-    const w = $("rvLogo"), glow = document.createElement("div"), s1 = document.createElement("div"), s2 = document.createElement("div");
-    glow.className = "glow"; s1.className = "shock"; s2.className = "shock s2";
-    // two pulses per bar of the track that's playing
-    w.style.setProperty("--beat2", isDance(team) ? ".836s" : ".743s");
-    w.replaceChildren(glow, s1, s2, logoNode(team, "team-logo"));
-    w.classList.toggle("tall", !!(TEAMS[team] || {}).tall);
-    $("rvName").textContent = team;
-    reveal("rv");
+  // ---------- team logo reveal: rewind blast ----------
+  const BLAST = 1.0;           // seconds from frozen explosion to impact
+  const FXC = $("rvFx"), fx = FXC.getContext("2d");
+  let fxDpr = 1, fxState = null, fxRaf = 0;
+  const logoCache = {};
+  function textLogo(team) {
+    const dance = isDance(team), c = document.createElement("canvas"), g = c.getContext("2d"), fs = 180, txt = team.toUpperCase();
+    const font = `900 ${fs}px Montserrat, "Arial Black", sans-serif`; g.font = font;
+    c.width = Math.ceil(g.measureText(txt).width) + 80; c.height = Math.round(fs * 1.35);
+    g.font = font; g.textAlign = "center"; g.textBaseline = "middle"; g.lineJoin = "round";
+    const gr = g.createLinearGradient(0, c.height * .15, 0, c.height * .85);
+    if (dance) { gr.addColorStop(0, "#FFFFFF"); gr.addColorStop(.48, "#D9D4DE"); gr.addColorStop(.52, "#FFFFFF"); gr.addColorStop(1, "#8E8A94"); }
+    else { gr.addColorStop(0, "#FFFFFF"); gr.addColorStop(.45, "#FFD6EA"); gr.addColorStop(1, "#FF4FA8"); }
+    g.lineWidth = 16; g.strokeStyle = "#16060F"; g.strokeText(txt, c.width / 2, c.height / 2);
+    g.fillStyle = gr; g.fillText(txt, c.width / 2, c.height / 2);
+    return c.toDataURL();
   }
+  function loadLogo(team) {
+    if (logoCache[team]) return logoCache[team].ready;
+    const t = TEAMS[team] || {}, src = t.logo || textLogo(team), im = new Image(), entry = { src, img: im, frags: [], bright: [] };
+    entry.ready = new Promise(res => {
+      im.onload = () => {
+        const cw = 220, ch = Math.max(1, Math.round(cw * im.naturalHeight / im.naturalWidth)), c = document.createElement("canvas");
+        c.width = cw; c.height = ch; const g = c.getContext("2d"); g.drawImage(im, 0, 0, cw, ch);
+        try {
+          const d = g.getImageData(0, 0, cw, ch).data;
+          for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+            const k = (y * cw + x) * 4; if (d[k + 3] < 150) continue;
+            entry.frags.push({ u: x / cw, v: y / ch, c: `rgb(${d[k]},${d[k + 1]},${d[k + 2]})` });
+            if ((d[k] + d[k + 1] + d[k + 2]) / 3 > 215 && d[k + 3] > 230) entry.bright.push({ u: x / cw, v: y / ch });
+          }
+        } catch (e) {}
+        res(entry);
+      };
+      im.onerror = () => res(entry);
+    });
+    entry.img.src = src;
+    logoCache[team] = entry;
+    return entry.ready;
+  }
+  function fxSize() {
+    fxDpr = isLite() ? 1 : Math.min(window.devicePixelRatio || 1, 2);
+    FXC.width = Math.round(FXC.clientWidth * fxDpr); FXC.height = Math.round(FXC.clientHeight * fxDpr);
+  }
+  window.addEventListener("resize", () => { fxSize(); if (fxState) fxState.rect = measure(fxState.el); });
+  function measure(el) {
+    const a = el.getBoundingClientRect(), b = FXC.getBoundingClientRect();
+    return { x: (a.left - b.left) * fxDpr, y: (a.top - b.top) * fxDpr, w: a.width * fxDpr, h: a.height * fxDpr };
+  }
+  const rv = $("rv");
+  function landNow() {
+    const s = fxState; if (!s || s.landed) return;
+    s.landed = true; s.idle0 = performance.now(); s.glints = [];
+    rv.classList.add("landed");
+    stage.classList.remove("letterbox"); stage.classList.add("party");
+    S.tone(1, 20000, .02); flashGo(); hit(); burst(1);
+  }
+  function fxFrame() {
+    fxRaf = 0;
+    const s = fxState;
+    if (!s || !rv.classList.contains("on")) { fx.clearRect(0, 0, FXC.width, FXC.height); fxState = null; return; }
+    const W = FXC.width, H = FXC.height, R = s.rect, u = W / 1400;
+    fx.clearRect(0, 0, W, H);
+    if (!s.landed) {
+      const p = (S.pos() - (s.land - BLAST)) / BLAST;
+      if (p >= 1) landNow();
+      else if (p > -0.5) {
+        const dot = (x, y, c, size) => { fx.fillStyle = c; fx.fillRect(x - size / 2, y - size / 2, size, size); };
+        fx.globalAlpha = 1;
+        if (p < .55) {
+          const drift = .9 + .1 * Math.max(0, p) / .55;
+          for (const q of s.P) dot(R.x + q.u * R.w + q.dx * R.w * drift, R.y + q.v * R.h + q.dy * R.h * drift, q.c, q.s);
+          if (p > .42) { fx.globalAlpha = (p - .42) * 6; fx.fillStyle = "#FFFFFF"; fx.fillRect(0, H * .5, W, 2 * fxDpr); fx.globalAlpha = 1; }
+        } else {
+          const k = (p - .55) / .45, e = k * k * k;
+          for (const q of s.P) dot(R.x + q.u * R.w + q.dx * R.w * (1 - e) + Math.sin(k * 9 + q.ph) * (1 - e) * 4 * fxDpr, R.y + q.v * R.h + q.dy * R.h * (1 - e), q.c, q.s);
+        }
+      }
+    }
+    if (s.landed) {
+      const t = (performance.now() - s.idle0) / 1000, L = s.logo;
+      // sheen: a soft band of light glides across the logo only
+      const cyc = 3.2, sp = ((t + 2.2) % cyc) / .95;
+      if (sp < 1 && L.img.complete) {
+        const o = s.oc, og = s.og; o.width = Math.ceil(R.w); o.height = Math.ceil(R.h);
+        og.clearRect(0, 0, o.width, o.height); og.globalCompositeOperation = "source-over"; og.drawImage(L.img, 0, 0, o.width, o.height);
+        og.globalCompositeOperation = "source-in";
+        const e = sp < .5 ? 4 * sp * sp * sp : 1 - Math.pow(-2 * sp + 2, 3) / 2, bx = -o.width * .4 + o.width * 1.8 * e;
+        const gr = og.createLinearGradient(bx - o.width * .16, 0, bx + o.width * .16, o.height * .35);
+        gr.addColorStop(0, "rgba(255,255,255,0)"); gr.addColorStop(.5, "rgba(255,255,255,.42)"); gr.addColorStop(1, "rgba(255,255,255,0)");
+        og.fillStyle = gr; og.fillRect(0, 0, o.width, o.height);
+        fx.globalAlpha = 1; fx.drawImage(o, R.x, R.y);
+      }
+      // glints: little four-point stars on the brightest chrome
+      if (L.bright.length && s.glints.length < (isLite() ? 3 : 5) && Math.random() < .07) {
+        const b = L.bright[(Math.random() * L.bright.length) | 0];
+        s.glints.push({ u: b.u, v: b.v, t0: t, life: .55 + Math.random() * .35, size: (12 + Math.random() * 14) * fxDpr * Math.max(.7, R.w / (700 * fxDpr)), rot: (Math.random() - .5) * .5 });
+      }
+      s.glints = s.glints.filter(gl => {
+        const k = (t - gl.t0) / gl.life; if (k >= 1) return false;
+        const a = Math.sin(k * Math.PI), r = gl.size * (.4 + .6 * a), x = R.x + gl.u * R.w, y = R.y + gl.v * R.h;
+        fx.save(); fx.translate(x, y); fx.rotate(gl.rot);
+        const rg = fx.createRadialGradient(0, 0, 0, 0, 0, r * .45); rg.addColorStop(0, `rgba(255,255,255,${a})`); rg.addColorStop(1, "rgba(255,200,230,0)");
+        fx.globalAlpha = 1; fx.fillStyle = rg; fx.beginPath(); fx.arc(0, 0, r * .45, 0, 6.283); fx.fill();
+        fx.globalAlpha = a; fx.fillStyle = "#FFFFFF";
+        fx.beginPath(); fx.moveTo(0, -r); fx.quadraticCurveTo(0, 0, r * .9, 0); fx.quadraticCurveTo(0, 0, 0, r); fx.quadraticCurveTo(0, 0, -r * .9, 0); fx.quadraticCurveTo(0, 0, 0, -r); fx.fill();
+        fx.globalAlpha = a * .5; fx.fillRect(-r * 1.7, -.6 * fxDpr, r * 3.4, 1.2 * fxDpr);
+        fx.restore(); return true;
+      });
+      fx.globalAlpha = 1;
+    }
+    fxRaf = requestAnimationFrame(fxFrame);
+  }
+  // starts the blast so the logo slams together exactly at song time `landAt`
+  function revealTeam(team, i, landAt) {
+    stopShuffle();
+    const entry = logoCache[team];
+    $("rvMini").textContent = i === 0 ? `Congratulations, ${P.firstName}` : "And";
+    $("rvName").textContent = team;
+    const w = $("rvLogo"), rays = document.createElement("div"), ri = document.createElement("i"), im = document.createElement("img");
+    rays.className = "rays"; rays.setAttribute("aria-hidden", "true"); rays.append(ri);
+    im.className = "rv-img"; im.alt = team; im.src = entry ? entry.src : (TEAMS[team] || {}).logo || textLogo(team);
+    w.style.setProperty("--beat2", isDance(team) ? ".836s" : ".743s");
+    w.replaceChildren(rays, im);
+    w.classList.toggle("tall", !!(TEAMS[team] || {}).tall);
+    rv.classList.remove("landed");
+    show("rv");
+    if (!entry || !entry.frags.length) { fxState = null; setTimeout(() => { fxState = { landed: false, el: im, rect: measure(im), logo: entry || { img: im, bright: [] }, oc: document.createElement("canvas"), land: landAt, P: [] }; fxState.og = fxState.oc.getContext("2d"); landNow(); if (!fxRaf) fxRaf = requestAnimationFrame(fxFrame); }, Math.max(0, (landAt - S.pos()) * 1000)); return; }
+    fxSize();
+    const n = isLite() ? 900 : 2200, step = Math.max(1, Math.floor(entry.frags.length / n)), parts = [], R0 = measure(im), base = Math.max(2.4 * fxDpr, R0.w / 130);
+    for (let k = 0; k < entry.frags.length; k += step) {
+      const f = entry.frags[k], a = Math.atan2(f.v - .5, f.u - .5) + (Math.random() - .5) * 1.2, d = .12 + Math.random() * .5;
+      parts.push({ u: f.u, v: f.v, c: f.c, dx: Math.cos(a) * d, dy: Math.sin(a) * d * .8, ph: Math.random() * 6.283, s: Math.max(1.8, base * (.7 + Math.random() * .9)) });
+    }
+    const oc = document.createElement("canvas");
+    fxState = { landed: false, el: im, rect: measure(im), logo: entry, P: parts, land: landAt, oc, og: oc.getContext("2d") };
+    if (!fxRaf) fxRaf = requestAnimationFrame(fxFrame);
+  }
+
   const loadText = (i, d) => i === 0
     ? `${P.firstName}, your ${d === "dance" ? "dance" : SEASON} team is`
     : `And your ${ORD[i] || "next"} ${d === "dance" ? "dance " : ""}team is`;
@@ -1010,6 +1159,7 @@ const S = (() => {
     if (!P.demo && !P.openedAt) dbReady.then(d => d.opened(P.code));
     buildSummary();
     flashGo(); show("start"); bg("opening", .38, 3);
+    P.teams.forEach(loadLogo);
     S.prefetch(cheerOf().length ? "cheer" : "dance");
     if (cheerOf().length) warm("reel");
     setTimeout(() => { warm("celebrate"); if (danceOf().length) { warm("dance"); S.prefetch("dance"); } }, 4000);
@@ -1049,22 +1199,22 @@ const S = (() => {
       await at(12.68, tk); moment("newgoals"); look(.42, 1);
       await at(14.14, tk); moment("best", true); hit(); look(.5, 0);
       await at(14.88, tk); hit();
-      await at(15.6, tk);  loading(loadText(0, "cheer"), shuffleList("cheer"), 2.14, tk); look(.4, 1.5); tension(1);
-      await at(16.7, tk);  tension(2);
-      await at(17.5, tk); tension(0); cut();
-      await at(17.56, tk); revealTeam(list[0], 0); look(.44, 1.5);
+      await at(15.6, tk);  loading(loadText(0, "cheer"), shuffleList("cheer"), 1.14, tk); look(.4, 1.5); tension(1);
+      await at(16.2, tk);  tension(2);
+      await at(16.74, tk); tension(0); cut();
+      await at(16.8, tk); revealTeam(list[0], 0, 17.8); look(.44, 1.5);
       await at(20.45, tk); burst(.7); hit(); look(.5, 1);
       let r = 17.8;
       for (let i = 1; i < list.length; i++) {
         const l = r + 5.62; r = l + 2.94;
-        await at(l, tk); loading(loadText(i, "cheer"), shuffleList("cheer"), r - l, tk); tension(1); S.tone(.65, 520); look(.22, 6);
-        await at(r - 1.0, tk); tension(2);
-        await at(r - .3, tk); tension(0); cut();
-        await at(r - .24, tk); S.tone(1, 20000, .02); revealTeam(list[i], i); look(.48, 1);
+        await at(l, tk); loading(loadText(i, "cheer"), shuffleList("cheer"), r - 1.06 - l, tk); tension(1); S.tone(.65, 520); look(.22, 6);
+        await at(r - 1.6, tk); tension(2);
+        await at(r - 1.06, tk); tension(0); cut();
+        await at(r - 1.0, tk); revealTeam(list[i], i, r); look(.48, 1);
       }
       await at(r + (list.length > 1 ? 2.97 : 5.62), tk);
       showAll(list); burst(.6); bg("celebrate", .34, 2, { from: 0 }); $("skip").hidden = true;
-    } catch (e) {}
+    } catch (e) { if (e) console.error(e); }
   }
 
   // DANCE: synced to the State clip's track. Big hits at 11.81 ("hobby") and 18.67 ("block me"), 143.6 BPM.
@@ -1085,20 +1235,20 @@ const S = (() => {
       await at(6.8, tk);  moment("d-elite"); look(.4, 1);
       await at(8.1, tk);  moment("best", true); hit(); look(.46, 0);
       await at(8.85, tk); hit();
-      await at(9.5, tk);  loading(loadText(0, "dance"), shuffleList("dance"), 2.26, tk); look(.4, 1.5); tension(1);
-      await at(10.7, tk); tension(2);
-      await at(11.51, tk); tension(0); cut();
-      await at(11.57, tk); revealTeam(list[0], 0); look(.45, 1.5);
+      await at(9.5, tk);  loading(loadText(0, "dance"), shuffleList("dance"), 1.25, tk); look(.4, 1.5); tension(1);
+      await at(10.2, tk); tension(2);
+      await at(10.75, tk); tension(0); cut();
+      await at(10.81, tk); revealTeam(list[0], 0, 11.81); look(.45, 1.5);
       let r = 11.81;
       for (let i = 1; i < list.length; i++) {
         const l = r + 3.59; r = l + 3.27;
-        await at(l, tk); loading(loadText(i, "dance"), shuffleList("dance"), r - l, tk); tension(1); S.tone(.65, 520); look(.2, 6);
-        await at(r - 1.07, tk); tension(2);
-        await at(r - .3, tk); tension(0); cut();
-        await at(r - .24, tk); S.tone(1, 20000, .02); revealTeam(list[i], i); look(.45, 1.5);
+        await at(l, tk); loading(loadText(i, "dance"), shuffleList("dance"), r - 1.06 - l, tk); tension(1); S.tone(.65, 520); look(.2, 6);
+        await at(r - 1.6, tk); tension(2);
+        await at(r - 1.06, tk); tension(0); cut();
+        await at(r - 1.0, tk); revealTeam(list[i], i, r); look(.45, 1.5);
       }
       await at(r + 3.33, tk); summary();
-    } catch (e) {}
+    } catch (e) { if (e) console.error(e); }
   }
 
   // ---------- summary ----------
