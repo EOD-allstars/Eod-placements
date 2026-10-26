@@ -78,7 +78,8 @@ body { background: var(--ink); color: var(--chrome); font-family: var(--display)
 .bar { position: absolute; left: 0; right: 0; height: 11vh; background: #000; z-index: 4; pointer-events: none; transition: transform 1s cubic-bezier(.7,0,.2,1); }
 .bar.top { top: 0; transform: translateY(-101%); }
 .bar.bot { bottom: 0; transform: translateY(101%); }
-.letterbox .bar { transform: none; }
+/* letterbox bars switched off: the reveal stays full screen */
+.bar { display: none !important; }
 .flash { position: absolute; inset: 0; background: #FFFFFF; opacity: 0; pointer-events: none; z-index: 5; }
 .flash.go { animation: flash .7s ease-out; }
 @keyframes flash { 0% { opacity: .95; } 100% { opacity: 0; } }
@@ -852,8 +853,9 @@ const S = (() => {
   function burst(strength = 1) {
     const cx = W / 2, cy = H * .46, n = Math.round(260 * strength * (document.documentElement.classList.contains("lite") ? .35 : 1));
     for (let i = 0; i < n; i++) {
-      const a = rnd(0, Math.PI * 2), s = rnd(.6, 7.5) * (Math.random() < .2 ? 1.5 : 1);
-      fleck(cx + rnd(-30, 30), cy + rnd(-20, 20), Math.cos(a) * s, Math.sin(a) * s * .8, Math.random() < .07);
+      // spray out from a soft ring so nothing sits bunched in the middle
+      const a = rnd(0, Math.PI * 2), s = rnd(3.5, 9) * (Math.random() < .2 ? 1.4 : 1), r0 = Math.min(W, H) * rnd(.06, .16);
+      fleck(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0 * .8, Math.cos(a) * s, Math.sin(a) * s * .8, Math.random() < .07);
     }
     rainUntil = performance.now() + 5200;
     if (!raf) raf = requestAnimationFrame(tick);
