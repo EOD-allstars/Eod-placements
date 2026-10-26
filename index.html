@@ -481,11 +481,10 @@ button:disabled { opacity: .6; cursor: default; }
 <main class="stage" id="stage">
   <div class="bgv" id="bgv" aria-hidden="true">
     <video data-name="mix" src="mix.mp4" muted loop playsinline autoplay preload="auto"></video>
-    <video data-name="opening" src="opening.mp4" muted loop playsinline preload="auto"></video>
-    <video data-name="intro" src="intro.mp4" muted playsinline preload="auto"></video>
-    <video data-name="routines" src="routines.mp4" muted loop playsinline preload="auto"></video>
-    <video data-name="celebrate" src="celebrate.mp4" muted loop playsinline preload="auto"></video>
-    <video data-name="dance" src="dance-bts.mp4" muted loop playsinline preload="auto"></video>
+    <video data-name="opening" src="opening.mp4" muted loop playsinline preload="none"></video>
+    <video data-name="reel" src="cheer-reel.mp4" muted playsinline preload="none"></video>
+    <video data-name="celebrate" src="celebrate.mp4" muted loop playsinline preload="none"></video>
+    <video data-name="dance" src="dance-bts.mp4" muted loop playsinline preload="none"></video>
   </div>
   <div class="ambient" aria-hidden="true"></div>
   <div class="beams" aria-hidden="true"><div class="beam l"></div><div class="beam c"></div><div class="beam r"></div></div>
@@ -629,7 +628,10 @@ button:disabled { opacity: .6; cursor: default; }
   const q = new URLSearchParams(location.search), root = document.documentElement;
   const tv = /SmartTV|SMART-TV|Tizen|Web0S|WebOS|NetCast|BRAVIA|AFT[A-Z]|CrKey|Android TV|GoogleTV|HbbTV|VIDAA|Viera|Roku|PlayStation|Xbox|Nintendo/i.test(navigator.userAgent);
   if (q.has("full")) return;
-  if (q.has("lite") || tv) { root.classList.add("lite"); return; }
+  if (q.has("lite") || tv) {
+    root.classList.add("lite");
+    return;
+  }
   // measure the frame rate for 2.5 seconds after load; under ~40fps switches lite on
   let n = 0, t0 = 0;
   requestAnimationFrame(function f(t) {
@@ -703,7 +705,9 @@ const S = (() => {
     filt.frequency.cancelScheduledValues(t); filt.frequency.setTargetAtTime(cut, t, tc);
   }
   function setMuted(m) { muted = m; if (ctx) master.gain.setTargetAtTime(m ? 0 : 1, ctx.currentTime, .05); }
-  return { play, stop, pos, tone, setMuted, get muted() { return muted; }, get track() { return cur && cur.k; } };
+  // unpack a song ahead of time (works before the first tap; sound starts on Play)
+  function prefetch(k) { if (ensure()) decode(k); }
+  return { play, prefetch, stop, pos, tone, setMuted, get muted() { return muted; }, get track() { return cur && cur.k; } };
 })();
 
 /* ---------- visuals ---------- */
@@ -844,19 +848,27 @@ const S = (() => {
   document.querySelectorAll(".bgv video").forEach(v => (vids[v.dataset.name] = v));
   const bgv = $("bgv");
   function look(o, b) { bgv.style.setProperty("--vo", o); bgv.style.setProperty("--vb", b + "px"); }
+  const isLite = () => document.documentElement.classList.contains("lite");
+  // start downloading a video ahead of time so it's ready when needed
+  function warm(name) { const v = vids[name]; if (v && v.preload !== "auto") { v.preload = "auto"; v.load(); } }
   function bg(name, o, b, opts = {}) {
     look(o, b);
+    const lite = isLite();
     Object.entries(vids).forEach(([k, v]) => {
       const on = k === name;
       if (on) {
+        warm(k);
         if (opts.from != null) { try { v.currentTime = opts.from; } catch (e) {} }
         const p = v.play(); if (p && p.catch) p.catch(() => {});
       } else if (v.classList.contains("on")) {
-        setTimeout(() => { if (!v.classList.contains("on")) v.pause(); }, 1300);
+        // TVs can usually only play one video at a time, so stop the old one straight away there
+        if (lite) v.pause(); else setTimeout(() => { if (!v.classList.contains("on")) v.pause(); }, 1300);
       }
       v.classList.toggle("on", on);
     });
   }
+
+  if (!isLite()) Object.values(vids).forEach(v => (v.preload = "auto"));
   bg("mix", .42, 1.5);
 
   // ---------- athlete data ----------
@@ -973,6 +985,9 @@ const S = (() => {
     if (!P.demo && !P.openedAt) dbReady.then(d => d.opened(P.code));
     buildSummary();
     flashGo(); show("start"); bg("opening", .38, 3);
+    S.prefetch(cheerOf().length ? "cheer" : "dance");
+    if (cheerOf().length) warm("reel");
+    setTimeout(() => { warm("celebrate"); if (danceOf().length) { warm("dance"); S.prefetch("dance"); } }, 4000);
   });
 
   // waits until the song reaches `sec`
@@ -998,8 +1013,8 @@ const S = (() => {
     if (!list.length) return playDance();
     const tk = ++token; prep("cheer"); cut();
     stage.classList.add("letterbox");
-    bg("intro", .34, 2, { from: 0 });
-    await S.play("cheer", 0, [47.81, 131.03]);
+    bg("reel", .34, 2, { from: 0 });
+    await S.play("cheer", 0, [20.45, 44.23]);
     if (tk !== token) return;
     try {
       await at(.3, tk);    moment("welcome"); look(.3, 3);
@@ -1012,7 +1027,7 @@ const S = (() => {
       await at(15.6, tk);  loading(loadText(0, "cheer"), shuffleList("cheer"), 2.14, tk); look(.4, 1.5); tension(1);
       await at(16.7, tk);  tension(2);
       await at(17.74, tk); tension(0); cut();
-      await at(17.8, tk);  revealTeam(list[0], 0); bg("routines", .44, 1.5, { from: 0 });
+      await at(17.8, tk);  revealTeam(list[0], 0); look(.44, 1.5);
       await at(20.45, tk); burst(.7); hit(); look(.5, 1);
       let r = 17.8;
       for (let i = 1; i < list.length; i++) {
@@ -1122,7 +1137,7 @@ const S = (() => {
     stopShuffle(); show("s"); $("skip").hidden = true; $("mute").hidden = false;
     bg("celebrate", .16, 8);
     if (!S.track) {
-      const p = danceOf().length ? S.play("dance", 11.03, [11.03, 51.15]) : S.play("cheer", 47.81, [47.81, 131.03]);
+      const p = danceOf().length ? S.play("dance", 11.03, [11.03, 51.15]) : S.play("cheer", 20.45, [20.45, 44.23]);
       p.then(() => S.tone(.45, 2600, .5));
     } else S.tone(.45, 2600, .6);
     burst();
