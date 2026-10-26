@@ -1421,7 +1421,7 @@ const S = (() => {
     $("mute").hidden = false; $("skip").hidden = false;
   }
 
-  // CHEER: synced to the debut track. Build 6.0 to 17.8, boom 17.8, full drop 20.45, 161.5 BPM.
+  // CHEER: synced to the debut track. Build 6.0 to 17.75, rush to the big drop at 20.40, 161.5 BPM.
   async function playCheer() {
     const list = cheerOf();
     if (!list.length) return playDance();
@@ -1438,13 +1438,15 @@ const S = (() => {
       await at(12.68, tk); moment("newgoals"); look(.42, 1);
       await at(14.14, tk); moment("best", true); hit(); look(.5, 0);
       await at(14.88, tk); hit();
-      await at(15.25, tk); teamReveal(list[0], 0, "cheer", 15.25, 16.74, 17.8, tk); look(.2, 4);
-      await at(16.74, tk); look(.1, 6);
-      await at(17.8, tk);  look(.14, 4);
-      await at(20.45, tk); burst(.7); hit();
-      let r = 17.8;
+      // first reveal: words from 15.25, rush from the hit at 17.75, explosion on the big drop at 20.40
+      await at(15.25, tk); teamReveal(list[0], 0, "cheer", 15.25, 17.75, 20.4, tk); look(.2, 4);
+      await at(17.75, tk); look(.1, 6);
+      await at(20.4, tk);  look(.14, 4);
+      // later reveals land on the next big hits in the song
+      const LANDS = [20.4, 26.99, 32.84, 38.7];
+      let r = 20.4;
       for (let i = 1; i < list.length; i++) {
-        const l = r + 5.62; r = l + 2.94;
+        r = LANDS[i] || r + 5.86; const l = r - 2.94;
         await at(l, tk); teamReveal(list[i], i, "cheer", l, r - 1.06, r, tk); S.tone(.65, 520); look(.16, 6);
         await at(r - 1.06, tk); look(.1, 6);
         await at(r, tk); look(.14, 4);
