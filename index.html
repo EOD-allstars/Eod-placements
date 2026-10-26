@@ -391,25 +391,76 @@ button:disabled { opacity: .6; cursor: default; }
 }
 
 
-/* ---------- rewind blast reveal ---------- */
-.rvfx { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
-#rv.scene { transform: none !important; transition: opacity .15s ease, visibility 0s !important; }
+/* ---------- team reveal: name build, light rush, smoke explosion ---------- */
+.rvfx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+#rvBack { z-index: 0; }
+#rvFx { z-index: 1; }
+#rv.scene, #nb.scene { transform: none !important; transition: opacity .15s ease, visibility 0s !important; }
 .rv-img { position: relative; z-index: 1; width: 100%; height: auto; display: block; opacity: 0; }
-#rv.landed .rv-img { opacity: 1; animation: settle .5s ease-out; }
-#rv .cmini, #rv .team-name { opacity: 0; transform: translateY(8px); transition: opacity .6s ease .2s, transform .6s ease .2s; }
+.rv-img.burst { animation: rvBurst .9s linear forwards; }
+@keyframes rvBurst {
+  0% { opacity: 0; transform: scale(.2) rotate(-8deg); filter: blur(16px); animation-timing-function: cubic-bezier(.2,.75,.3,1); }
+  6% { opacity: 1; }
+  42% { opacity: 1; transform: scale(1.13) rotate(1.5deg); filter: blur(0) drop-shadow(0 0 34px rgba(255,79,168,.7)); animation-timing-function: cubic-bezier(.4,0,.3,1); }
+  70% { transform: scale(.97) rotate(-.5deg); }
+  100% { opacity: 1; transform: none; filter: blur(0) drop-shadow(0 18px 40px rgba(0,0,0,.6)); } }
+.rv-img.float { opacity: 1; filter: drop-shadow(0 18px 40px rgba(0,0,0,.6)); animation: rvFloat 5s ease-in-out infinite; }
+@keyframes rvFloat { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-1.2vh) scale(1.015); } }
+#rv .cmini, #rv .team-name { opacity: 0; transform: translateY(8px); transition: opacity .7s ease .1s, transform .7s ease .1s; }
 #rv.landed .cmini, #rv.landed .team-name { opacity: 1; transform: none; }
-/* pink beams bursting from behind the logo */
+/* pink beams behind the logo */
 .rays { position: absolute; left: 50%; top: 50%; width: 230%; aspect-ratio: 1; translate: -50% -50%; z-index: 0; pointer-events: none; opacity: 0; transform: scale(.6);
   transition: opacity .9s ease, transform 1.2s cubic-bezier(.15,.8,.2,1); }
-#rv.landed .rays { opacity: 1; transform: none; }
+#rv.landed .rays { opacity: .55; transform: none; }
 .rays i { position: absolute; inset: 0; border-radius: 50%;
   background: repeating-conic-gradient(from 0deg, rgba(255,79,168,0) 0deg, rgba(255,79,168,.42) 2.5deg, rgba(255,140,200,.18) 4.5deg, rgba(255,79,168,0) 7deg, rgba(255,79,168,0) 16deg);
   -webkit-mask-image: radial-gradient(closest-side, #000 14%, rgba(0,0,0,.55) 40%, transparent 72%); mask-image: radial-gradient(closest-side, #000 14%, rgba(0,0,0,.55) 40%, transparent 72%);
   animation: raysSpin 70s linear infinite, raysPulse var(--beat2, .743s) ease-in-out infinite; }
-.rays::after { content: ""; position: absolute; inset: 30%; border-radius: 50%; background: radial-gradient(closest-side, rgba(255,79,168,.35), transparent 75%); }
+.dance .rays i { background: repeating-conic-gradient(from 0deg, rgba(233,230,236,0) 0deg, rgba(233,230,236,.32) 2.5deg, rgba(233,230,236,.12) 4.5deg, rgba(233,230,236,0) 7deg, rgba(233,230,236,0) 16deg); }
 @keyframes raysSpin { to { rotate: 360deg; } }
 @keyframes raysPulse { 0%, 100% { opacity: .6; } 15% { opacity: 1; } }
 .lite .rays i { animation: raysPulse var(--beat2, .743s) ease-in-out infinite; }
+/* soft coloured flash (no white) */
+.pflash { position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: 0; background: radial-gradient(circle at 50% 50%, #FF8CC8 0%, #FF4FA8 45%, rgba(255,79,168,0) 80%); }
+.dance .pflash { background: radial-gradient(circle at 50% 50%, #A9A3B0 0%, #6E6878 45%, rgba(110,104,120,0) 80%); }
+.pflash.go { animation: pflash .32s ease-out; }
+.pflash.soft.go { animation: pflashSoft .35s ease-out; }
+@keyframes pflash { 0% { opacity: .45; } 100% { opacity: 0; } }
+@keyframes pflashSoft { 0% { opacity: .25; } 100% { opacity: 0; } }
+
+/* name build: "MIA, YOUR 2027 TEAM IS . . . . ." */
+#nb { width: 100%; }
+.nb { display: flex; flex-direction: column; align-items: center; gap: 1vh; transform-origin: 50% 50%; }
+.nb-name { margin: 0; font-weight: 900; text-transform: uppercase; line-height: .85; font-size: var(--nf, min(26vw, 40vh)); letter-spacing: -.02em; white-space: nowrap;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F4E6EE 42%, #FF8BC6 58%, #B8226E 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 40px rgba(255,79,168,.45)); opacity: 0; }
+.dance .nb-name { background-image: linear-gradient(180deg, #FFFFFF 0%, #DCD7E0 48%, #FFFFFF 52%, #8E8A94 100%); filter: drop-shadow(0 0 34px rgba(255,255,255,.35)); }
+.nb-line.long { font-size: min(6vw, 9vh); }
+.nb-line { margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 0 .32em; font-weight: 900; text-transform: uppercase; font-size: min(7.6vw, 11vh); line-height: 1; }
+.nb-line span { opacity: 0; display: inline-block; color: #FFFFFF; }
+.nb-dots { display: flex; gap: .45em; font-weight: 900; font-size: min(8vw, 12vh); line-height: .6; height: .7em; color: var(--pink); }
+.nb-dots i { font-style: normal; opacity: 0; text-shadow: 0 0 20px rgba(255,79,168,.9); }
+.dance .nb-dots { color: #E9E6EC; }
+.dance .nb-dots i { text-shadow: 0 0 20px rgba(255,255,255,.7); }
+.nb .slam { animation: nbSlam .32s cubic-bezier(.6,0,1,.6) forwards; }
+.nb .nb-name.slam { animation: nbSlamName .34s cubic-bezier(.6,0,1,.6) forwards; }
+@keyframes nbSlam { 0% { opacity: 0; transform: scale(2.4); filter: blur(10px); } 100% { opacity: 1; transform: scale(1); filter: blur(0); } }
+@keyframes nbSlamName { 0% { opacity: 0; transform: scale(2.2); } 100% { opacity: 1; transform: scale(1); } }
+.nb .pop { animation: nbPop .18s ease-out forwards; }
+@keyframes nbPop { 0% { opacity: 0; transform: scale(1.8); } 100% { opacity: 1; transform: none; } }
+.nb.push { transition: transform var(--push, 3s) cubic-bezier(.3,0,.8,.6); transform: scale(1.12); }
+.nb.tremble { animation: nbTremble .08s linear infinite; }
+@keyframes nbTremble { 0% { translate: 0 0; } 25% { translate: 2px -1px; } 50% { translate: -2px 1px; } 75% { translate: 1px 2px; } 100% { translate: 0 0; } }
+.nb.glitch .nb-name { opacity: 1; animation: nbGlitch .9s steps(1) infinite; }
+@keyframes nbGlitch { 0%, 86%, 100% { translate: 0 0; } 88% { filter: drop-shadow(6px 0 0 rgba(255,0,90,.8)) drop-shadow(-6px 0 0 rgba(80,200,255,.7)); translate: 4px 0; } 92% { filter: drop-shadow(-5px 0 0 rgba(255,0,90,.8)) drop-shadow(5px 0 0 rgba(80,200,255,.7)); translate: -3px 0; } }
+.nb.suck { transition: transform .32s cubic-bezier(.7,0,1,.5), opacity .32s ease-in, filter .32s ease-in; transform: scale(.02); opacity: 0; filter: blur(8px) brightness(3); }
+.lite .nb-name, .lite .dance .nb-name { filter: none; }
+.lite .nb .slam { animation-name: slamLite; }
+.lite .nb.glitch .nb-name { animation: none; }
+.lite .nb.suck { filter: none; }
+.lite .rv-img.burst { animation-name: rvBurstLite; }
+@keyframes rvBurstLite { 0% { opacity: 0; transform: scale(.2); animation-timing-function: cubic-bezier(.2,.75,.3,1); } 6% { opacity: 1; } 42% { opacity: 1; transform: scale(1.12); } 70% { transform: scale(.97); } 100% { opacity: 1; transform: none; } }
+.lite .rv-img.float { filter: none; animation: none; }
 /* ---------- big screens: scale text and logos with the screen (phones unchanged) ---------- */
 @media (min-width: 900px) and (min-height: 560px) {
   .scene { width: min(100%, 1500px); gap: 2.4vh; }
@@ -529,6 +580,7 @@ button:disabled { opacity: .6; cursor: default; }
   </div>
   <div class="ambient" aria-hidden="true"></div>
   <div class="beams" aria-hidden="true"><div class="beam l"></div><div class="beam c"></div><div class="beam r"></div></div>
+  <canvas class="rvfx" id="rvBack" aria-hidden="true"></canvas>
 
   <section class="scene on" id="gate">
     <img class="eod gate-logo" data-logo="e" alt="EOD Allstars">
@@ -600,6 +652,14 @@ button:disabled { opacity: .6; cursor: default; }
     <div class="fuse" id="loadFuse"><i></i></div>
   </section>
 
+  <section class="scene" id="nb" aria-live="polite">
+    <div class="nb" id="nbIn">
+      <p class="nb-name" id="nbName"></p>
+      <p class="nb-line" id="nbLine"></p>
+      <div class="nb-dots" aria-hidden="true"><i>.</i><i>.</i><i>.</i><i>.</i><i>.</i></div>
+    </div>
+  </section>
+
   <section class="scene" id="rv">
     <div class="solo">
       <p class="cmini" id="rvMini"></p>
@@ -654,6 +714,7 @@ button:disabled { opacity: .6; cursor: default; }
   <div class="bar bot" aria-hidden="true"></div>
   <div class="leak" id="leak" aria-hidden="true"></div>
   <div class="flash" id="flash"></div>
+  <div class="pflash" id="pflash"></div>
   <canvas class="fx" id="fx" aria-hidden="true"></canvas>
 
   <button class="ctl" id="mute" type="button" aria-label="Mute music" hidden>
@@ -928,10 +989,10 @@ const S = (() => {
     if (t.logo) { const i = document.createElement("img"); i.src = t.logo; i.alt = team; if (cls) i.className = cls; return i; }
     const p = document.createElement("p"); p.className = "logo-text" + (cls ? " " + cls : ""); p.textContent = team; return p;
   }
-  // ---------- team logo reveal: rewind blast ----------
-  const BLAST = 1.0;           // seconds from frozen explosion to impact
-  const FXC = $("rvFx"), fx = FXC.getContext("2d");
-  let fxDpr = 1, fxState = null, fxRaf = 0;
+  // ---------- team reveal: name build, light rush with smoke brewing, smoke explosion, logo bursts out ----------
+  const LOGO_DELAY = .32;       // seconds after the explosion that the logo punches out
+  const BACK = $("rvBack"), bk = BACK.getContext("2d"), FXC = $("rvFx"), fx = FXC.getContext("2d"), pflash = $("pflash");
+  let fxDpr = 1, FW = 0, FH = 0, fxRaf = 0, lastT = 0, R = null, smoke = null;
   const logoCache = {};
   function textLogo(team) {
     const dance = isDance(team), c = document.createElement("canvas"), g = c.getContext("2d"), fs = 180, txt = team.toUpperCase();
@@ -945,9 +1006,10 @@ const S = (() => {
     g.fillStyle = gr; g.fillText(txt, c.width / 2, c.height / 2);
     return c.toDataURL();
   }
+  // loads a logo and finds its brightest chrome spots for the glints
   function loadLogo(team) {
     if (logoCache[team]) return logoCache[team].ready;
-    const t = TEAMS[team] || {}, src = t.logo || textLogo(team), im = new Image(), entry = { src, img: im, frags: [], bright: [] };
+    const t = TEAMS[team] || {}, src = t.logo || textLogo(team), im = new Image(), entry = { src, img: im, bright: [] };
     entry.ready = new Promise(res => {
       im.onload = () => {
         const cw = 220, ch = Math.max(1, Math.round(cw * im.naturalHeight / im.naturalWidth)), c = document.createElement("canvas");
@@ -955,11 +1017,10 @@ const S = (() => {
         try {
           const d = g.getImageData(0, 0, cw, ch).data;
           for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
-            const k = (y * cw + x) * 4; if (d[k + 3] < 150) continue;
-            entry.frags.push({ u: x / cw, v: y / ch, c: `rgb(${d[k]},${d[k + 1]},${d[k + 2]})` });
+            const k = (y * cw + x) * 4;
             if ((d[k] + d[k + 1] + d[k + 2]) / 3 > 215 && d[k + 3] > 230) entry.bright.push({ u: x / cw, v: y / ch });
           }
-        } catch (e) {}
+        } catch (e) { console.error(e); }
         res(entry);
       };
       im.onerror = () => res(entry);
@@ -970,101 +1031,277 @@ const S = (() => {
   }
   function fxSize() {
     fxDpr = isLite() ? 1 : Math.min(window.devicePixelRatio || 1, 2);
-    FXC.width = Math.round(FXC.clientWidth * fxDpr); FXC.height = Math.round(FXC.clientHeight * fxDpr);
+    for (const c of [BACK, FXC]) { c.width = Math.round(c.clientWidth * fxDpr); c.height = Math.round(c.clientHeight * fxDpr); }
+    FW = BACK.width; FH = BACK.height;
   }
-  window.addEventListener("resize", () => { fxSize(); if (fxState) fxState.rect = measure(fxState.el); });
+  window.addEventListener("resize", fxSize); fxSize();
   function measure(el) {
     const a = el.getBoundingClientRect(), b = FXC.getBoundingClientRect();
     return { x: (a.left - b.left) * fxDpr, y: (a.top - b.top) * fxDpr, w: a.width * fxDpr, h: a.height * fxDpr };
   }
+  const clamp01 = v => Math.max(0, Math.min(1, v));
   const rv = $("rv");
-  function landNow() {
-    const s = fxState; if (!s || s.landed) return;
-    s.landed = true; s.idle0 = performance.now(); s.glints = [];
-    rv.classList.add("landed");
-    stage.classList.remove("letterbox"); stage.classList.add("party");
-    S.tone(1, 20000, .02); flashGo(); hit(); burst(1);
+
+  // smoke sprites: wispy noise inside a soft round falloff, made once per colour set
+  function makeNoise(seed) {
+    const N = 64, grid = new Float32Array(N * N); let s = seed * 9301 + 49297;
+    for (let i = 0; i < N * N; i++) { s = (s * 9301 + 49297) % 233280; grid[i] = s / 233280; }
+    const sm = t => t * t * (3 - 2 * t);
+    return (x, y) => {
+      const xi = Math.floor(x), yi = Math.floor(y), xf = sm(x - xi), yf = sm(y - yi);
+      const a = grid[((yi & 63) * N) + (xi & 63)], b = grid[((yi & 63) * N) + ((xi + 1) & 63)], c = grid[(((yi + 1) & 63) * N) + (xi & 63)], d = grid[(((yi + 1) & 63) * N) + ((xi + 1) & 63)];
+      return a + (b - a) * xf + (c - a) * yf + (a - b - c + d) * xf * yf;
+    };
+  }
+  function makeSmoke(seed, tint) {
+    const Z = 160, c = document.createElement("canvas"); c.width = c.height = Z;
+    const x = c.getContext("2d"), im = x.createImageData(Z, Z), n = makeNoise(seed), d = im.data;
+    for (let j = 0; j < Z; j++) for (let i = 0; i < Z; i++) {
+      const u = i / Z * 2 - 1, v = j / Z * 2 - 1, r = Math.sqrt(u * u + v * v);
+      if (r >= 1) continue;
+      let f = 0, amp = .5, fr = 3;
+      for (let o = 0; o < 5; o++) { f += amp * n(i / Z * fr * 4 + seed * 7, j / Z * fr * 4 + seed * 3); amp *= .5; fr *= 2.1; }
+      const fall = Math.pow(1 - r, 1.4), a = Math.min(1, Math.max(0, Math.min(1, (f - .32) * 2.6)) * fall * 1.6);
+      const k = (j * Z + i) * 4, hot = Math.min(1, fall * 1.3 * f);
+      d[k] = tint[0] + (255 - tint[0]) * hot * .45; d[k + 1] = tint[1] + (255 - tint[1]) * hot * .28; d[k + 2] = tint[2] + (255 - tint[2]) * hot * .38; d[k + 3] = a * 255;
+    }
+    x.putImageData(im, 0, 0); return c;
+  }
+  const TINTS = {
+    cheer: [[255, 60, 160], [230, 40, 140], [255, 120, 190], [255, 170, 215], [190, 30, 120]],
+    dance: [[170, 162, 184], [140, 132, 156], [196, 188, 208], [120, 112, 136], [184, 170, 194]]
+  };
+  const SPR = {};
+  const sprites = kind => SPR[kind] || (SPR[kind] = Array.from({ length: 8 }, (_, i) => makeSmoke(i + 1, TINTS[kind][i % 5])));
+  const pickSpr = kind => { const a = sprites(kind); return a[(Math.random() * a.length) | 0]; };
+  const dustCol = kind => kind === "dance" ? (Math.random() < .6 ? "210,205,220" : "255,255,255") : (Math.random() < .6 ? "255,120,190" : "255,235,245");
+  const smokeGain = kind => kind === "dance" ? .55 : 1;
+
+  function pflashGo(soft) { pflash.classList.toggle("soft", !!soft); pflash.classList.remove("go"); void pflash.offsetWidth; pflash.classList.add("go"); }
+  function kick() { if (!fxRaf) { lastT = performance.now(); fxRaf = requestAnimationFrame(fxFrame); } }
+  function fadeSmoke(dur) { if (smoke && !smoke.fade) smoke.fade = { at: S.pos(), dur }; }
+  function fxKill() {
+    R = null; smoke = null;
+    bk.clearRect(0, 0, BACK.width, BACK.height); fx.clearRect(0, 0, FXC.width, FXC.height);
+  }
+  function centre() {
+    if (R && R.el) { const r = measure(R.el); if (r.h > 4) { R.rect = r; R.cx = r.x + r.w / 2; R.cy = r.y + r.h / 2; } }
+    return R && R.cx != null ? [R.cx, R.cy] : [FW / 2, FH / 2];
+  }
+
+  // the explosion: brewing smoke bursts, billows out, then settles into a bed of smoke behind the logo
+  function boom(now) {
+    const lite = isLite(), m = Math.min(FW, FH), Rr = Math.hypot(FW, FH) / 2, [cx, cy] = centre(), kind = R.kind, g = smokeGain(kind);
+    const mk = (x0, y0, a, o) => ({ x0, y0, a, v: rnd(.45, 1.5) * Rr, k: rnd(1.1, 2), s0: rnd(.16, .3) * m, grow: rnd(2.2, 3.6), rot: rnd(0, 6.283), spin: rnd(-.6, .6),
+      life: rnd(2.4, 3.8), spr: pickSpr(kind), peak: rnd(.22, .36) * g, keep: rnd(.18, .32) * g, ph: rnd(0, 6.283), drift: rnd(.004, .015) * Rr, ...o });
+    const puffs = R.brew.map(b => { const [x, y] = brewPos(b, 1, now); return mk(x, y, Math.atan2(y - cy, x - cx), {}); });
+    for (let i = 0; i < (lite ? 16 : 46); i++) puffs.push(mk(cx, cy, rnd(0, 6.283), {}));
+    for (let i = 0; i < (lite ? 6 : 14); i++) puffs.push(mk(cx, cy, rnd(0, 6.283), { v: rnd(.12, .3) * Rr, k: rnd(1.5, 2.5), s0: rnd(.3, .45) * m, grow: rnd(1.6, 2.2), keep: rnd(.2, .32) * g }));
+    for (let i = 0; i < (lite ? 10 : 30); i++) puffs.push(mk(cx, cy, rnd(0, 6.283), { front: true, delay: LOGO_DELAY, v: rnd(1.6, 2.8) * Rr, k: rnd(3, 4.5), s0: rnd(.22, .36) * m, life: rnd(.5, .8), peak: rnd(.35, .5) * g, keep: 0 }));
+    smoke = {
+      kind, born: now, cx, cy, puffs,
+      dust: Array.from({ length: lite ? 140 : 520 }, () => ({ a: rnd(0, 6.283), v: rnd(.25, 1.25) * Rr, k: rnd(1.4, 2.6), life: rnd(1.8, 3.6), s: rnd(.8, 2.6) * fxDpr, tw: rnd(0, 6.283), c: dustCol(kind) })),
+      motes: Array.from({ length: lite ? 40 : 150 }, () => ({ x: rnd(0, FW), y: rnd(0, FH), vy: -rnd(4, 18) * fxDpr, sway: rnd(6, 24) * fxDpr, ph: rnd(0, 6.283), s: rnd(1.2, 4.5) * fxDpr, tw: rnd(.6, 1.8), c: dustCol(kind) }))
+    };
+  }
+  function drawSmoke(now, dt) {
+    const s = smoke, t = now - s.born, m = Math.min(FW, FH), cx = s.cx, cy = s.cy;
+    let fm = 1;
+    if (s.fade) { fm = 1 - (now - s.fade.at) / s.fade.dur; if (fm <= 0) { smoke = null; return; } }
+    if (t < .35) {
+      bk.globalCompositeOperation = "lighter";
+      const k = t / .35, rr = m * (.18 + .55 * k), cg = bk.createRadialGradient(cx, cy, 0, cx, cy, rr);
+      const c1 = s.kind === "dance" ? "220,214,230" : "255,110,190", c2 = s.kind === "dance" ? "170,162,184" : "230,40,140";
+      cg.addColorStop(0, `rgba(${c1},${.3 * (1 - k)})`); cg.addColorStop(.45, `rgba(${c2},${.25 * (1 - k)})`); cg.addColorStop(1, `rgba(${c2},0)`);
+      bk.globalAlpha = 1; bk.fillStyle = cg; bk.beginPath(); bk.arc(cx, cy, rr, 0, 6.283); bk.fill();
+    }
+    for (const p of s.puffs) {
+      const tp = t - (p.delay || 0);
+      if (tp < 0 || (p.front && tp > p.life)) continue;
+      const c = p.front ? fx : bk;
+      c.globalCompositeOperation = p.front ? "source-over" : "lighter";
+      const dist = p.v * (1 - Math.exp(-p.k * tp)) / p.k + p.drift * tp;
+      const x = p.x0 + Math.cos(p.a) * dist + Math.sin(tp * .25 + p.ph) * m * .02, y = p.y0 + Math.sin(p.a) * dist * .8 + Math.cos(tp * .2 + p.ph) * m * .015;
+      const q = Math.min(1, tp / p.life), size = p.s0 * (1 + (p.grow - 1) * (1 - Math.pow(1 - q, 2))) * (1 + .05 * Math.sin(tp * .4 + p.ph));
+      const settle = p.keep * (.8 + .2 * Math.sin(tp * .6 + p.ph));
+      const a = (p.front ? Math.min(1, tp / .05) : Math.min(1, Math.pow(tp / .3, 1.5))) * (settle + (p.peak - settle) * Math.pow(1 - q, 1.5)) * fm;
+      if (a <= .003) continue;
+      c.globalAlpha = a; c.save(); c.translate(x, y); c.rotate(p.rot + p.spin * (1 - Math.exp(-tp)) + tp * .04); c.drawImage(p.spr, -size / 2, -size / 2, size, size); c.restore();
+    }
+    fx.globalAlpha = 1; fx.globalCompositeOperation = "source-over";
+    bk.globalCompositeOperation = "lighter";
+    for (const d of s.dust) {
+      if (t > d.life) continue;
+      const dist = d.v * (1 - Math.exp(-d.k * t)) / d.k, q = t / d.life;
+      bk.globalAlpha = Math.pow(1 - q, 1.3) * (.6 + .4 * Math.sin(t * 9 + d.tw)) * fm; bk.fillStyle = `rgb(${d.c})`;
+      bk.beginPath(); bk.arc(cx + Math.cos(d.a) * dist, cy + Math.sin(d.a) * dist * .8 - t * t * 6 * fxDpr, d.s, 0, 6.283); bk.fill();
+    }
+    const fin = clamp01((t - .4) / 1.2) * fm;
+    if (fin > 0) for (const o of s.motes) {
+      o.y += o.vy * dt; if (o.y < -10) { o.y = FH + 10; o.x = rnd(0, FW); }
+      const x = o.x + Math.sin(t * .8 + o.ph) * o.sway, a = fin * (.25 + .55 * (.5 + .5 * Math.sin(t * o.tw * 3 + o.ph)));
+      const rg = bk.createRadialGradient(x, o.y, 0, x, o.y, o.s * 3); rg.addColorStop(0, `rgba(${o.c},${a})`); rg.addColorStop(1, `rgba(${o.c},0)`);
+      bk.globalAlpha = 1; bk.fillStyle = rg; bk.beginPath(); bk.arc(x, o.y, o.s * 3, 0, 6.283); bk.fill();
+    }
+    bk.globalAlpha = 1; bk.globalCompositeOperation = "source-over";
+  }
+
+  // the build-up: light streaks rushing out of the centre while a knot of smoke churns there
+  const brewStart = r => r.suck - .35;
+  function brewPos(b, p, now) {
+    const m = Math.min(FW, FH), [cx, cy] = [R.cx != null ? R.cx : FW / 2, R.cy != null ? R.cy : FH / 2];
+    const pinch = clamp01((now - (R.land - .16)) / .16), rad = m * (.025 + .17 * Math.pow(p, 1.3)) * b.r * (1 - .45 * pinch);
+    return [cx + Math.cos(b.a) * rad, cy + Math.sin(b.a) * rad * .85, m * (.09 + .3 * p) * b.s * (1 + .08 * Math.sin(performance.now() / 90 + b.ph)) * (1 - .25 * pinch)];
+  }
+  function spawnStreak(kind) {
+    const c = kind === "dance" ? (Math.random() < .5 ? [255, 255, 255] : [190, 184, 200]) : (Math.random() < .55 ? [255, 79, 168] : (Math.random() < .5 ? [255, 255, 255] : [255, 170, 215]));
+    return { a: rnd(0, 6.283), d: rnd(0, .05), v: rnd(.6, 1.5), w: rnd(1, 3.2), c, boost: 1 };
+  }
+  function drawRush(now, dt) {
+    const r = R, lite = isLite(), [cx, cy] = centre(), Rr = Math.hypot(FW, FH) / 2, m = Math.min(FW, FH), f60 = dt * 60;
+    // streaks
+    let speed = 0, alpha = 1;
+    if (!r.boomed && now >= r.suck) {
+      const p = clamp01((now - r.suck) / (r.land - r.suck)); speed = .004 + .06 * p * p * p;
+      while (r.streaks.length < (lite ? 70 + p * 110 : 160 + p * 260)) r.streaks.push(spawnStreak(r.kind));
+    }
+    if (r.boomed) { const k = (now - r.land) / .9; speed = .05 * Math.max(0, 1 - k); alpha = Math.max(0, 1 - k); if (alpha <= 0) r.streaks = []; }
+    if (r.streaks.length && alpha > 0) {
+      bk.lineCap = "round"; bk.globalAlpha = 1; bk.globalCompositeOperation = "source-over";
+      for (const s of r.streaks) {
+        s.d += speed * s.v * (r.boomed ? s.boost : 1) * f60;
+        if (s.d > 1.15) { if (!r.boomed) Object.assign(s, spawnStreak(r.kind)); else continue; }
+        const len = Math.min(.5, .02 + speed * 7 * s.v), r1 = s.d * Rr, r2 = (s.d + len) * Rr;
+        const x1 = cx + Math.cos(s.a) * r1, y1 = cy + Math.sin(s.a) * r1, x2 = cx + Math.cos(s.a) * r2, y2 = cy + Math.sin(s.a) * r2;
+        const grd = bk.createLinearGradient(x1, y1, x2, y2);
+        grd.addColorStop(0, `rgba(${s.c},0)`); grd.addColorStop(1, `rgba(${s.c},${Math.min(1, .25 + s.d) * alpha})`);
+        bk.strokeStyle = grd; bk.lineWidth = s.w * fxDpr * (.6 + s.d * 1.6);
+        bk.beginPath(); bk.moveTo(x1, y1); bk.lineTo(x2, y2); bk.stroke();
+      }
+    }
+    // brewing smoke knot and sparks spiralling into it
+    if (r.boomed) return;
+    const p = clamp01((now - brewStart(r)) / (r.land - brewStart(r))); if (p <= 0) return;
+    for (const b of r.brew) {
+      b.a += b.w * dt * (.5 + 5 * p * p); b.rot += b.spin * dt * (1 + 2 * p);
+      const [x, y, sz] = brewPos(b, p, now);
+      bk.globalCompositeOperation = b.hot ? "lighter" : "source-over";
+      bk.globalAlpha = (b.hot ? .1 : .55) * smokeGain(r.kind) * Math.min(1, p * 2.2) * (.75 + .25 * Math.sin(performance.now() / 70 + b.ph));
+      bk.save(); bk.translate(x, y); bk.rotate(b.rot); bk.drawImage(b.spr, -sz / 2, -sz / 2, sz, sz); bk.restore();
+    }
+    while (r.sparks.length < (lite ? 20 + 50 * p : 40 + 160 * p)) r.sparks.push({ a: rnd(0, 6.283), r: rnd(.35, .7), v: rnd(.4, 1), s: rnd(.8, 2.2) * fxDpr, c: dustCol(r.kind) });
+    bk.globalCompositeOperation = "lighter";
+    r.sparks = r.sparks.filter(s => {
+      s.r -= dt * s.v * (.15 + 1.1 * p); s.a += dt * (1.2 + 4 * p) / Math.max(.15, s.r * 3);
+      if (s.r < .03) return false;
+      bk.globalAlpha = Math.min(1, (.7 - s.r) * 3) * (.4 + .6 * p); bk.fillStyle = `rgb(${s.c})`;
+      bk.beginPath(); bk.arc(cx + Math.cos(s.a) * s.r * m, cy + Math.sin(s.a) * s.r * m * .85, s.s, 0, 6.283); bk.fill(); return true;
+    });
+    bk.globalAlpha = 1; bk.globalCompositeOperation = "source-over";
+  }
+  // living chrome on the landed logo: a sheen gliding across it and little star glints
+  function drawShine(now) {
+    const r = R; if (!r.rect || !rv.classList.contains("on")) return;
+    const Rc = r.rect, L = r.logo, t = now - r.landT;
+    const sp = ((t + 2.2) % 3.2) / .95;
+    if (sp < 1 && L.img.complete && Rc.w > 4) {
+      const o = r.oc, og = r.og; o.width = Math.ceil(Rc.w); o.height = Math.ceil(Rc.h);
+      og.clearRect(0, 0, o.width, o.height); og.globalCompositeOperation = "source-over"; og.drawImage(L.img, 0, 0, o.width, o.height);
+      og.globalCompositeOperation = "source-in";
+      const e = sp < .5 ? 4 * sp * sp * sp : 1 - Math.pow(-2 * sp + 2, 3) / 2, bx = -o.width * .4 + o.width * 1.8 * e;
+      const gr = og.createLinearGradient(bx - o.width * .16, 0, bx + o.width * .16, o.height * .35);
+      gr.addColorStop(0, "rgba(255,255,255,0)"); gr.addColorStop(.5, "rgba(255,255,255,.42)"); gr.addColorStop(1, "rgba(255,255,255,0)");
+      og.fillStyle = gr; og.fillRect(0, 0, o.width, o.height);
+      fx.globalAlpha = 1; fx.drawImage(o, Rc.x, Rc.y);
+    }
+    if (L.bright.length && r.glints.length < (isLite() ? 3 : 5) && Math.random() < .07) {
+      const b = L.bright[(Math.random() * L.bright.length) | 0];
+      r.glints.push({ u: b.u, v: b.v, t0: t, life: .55 + Math.random() * .35, size: (12 + Math.random() * 14) * fxDpr * Math.max(.7, Rc.w / (700 * fxDpr)), rot: (Math.random() - .5) * .5 });
+    }
+    r.glints = r.glints.filter(gl => {
+      const k = (t - gl.t0) / gl.life; if (k >= 1 || k < 0) return false;
+      const a = Math.sin(k * Math.PI), rr = gl.size * (.4 + .6 * a), x = Rc.x + gl.u * Rc.w, y = Rc.y + gl.v * Rc.h;
+      fx.save(); fx.translate(x, y); fx.rotate(gl.rot);
+      const rg = fx.createRadialGradient(0, 0, 0, 0, 0, rr * .45); rg.addColorStop(0, `rgba(255,255,255,${a})`); rg.addColorStop(1, "rgba(255,200,230,0)");
+      fx.globalAlpha = 1; fx.fillStyle = rg; fx.beginPath(); fx.arc(0, 0, rr * .45, 0, 6.283); fx.fill();
+      fx.globalAlpha = a; fx.fillStyle = "#FFFFFF";
+      fx.beginPath(); fx.moveTo(0, -rr); fx.quadraticCurveTo(0, 0, rr * .9, 0); fx.quadraticCurveTo(0, 0, 0, rr); fx.quadraticCurveTo(0, 0, -rr * .9, 0); fx.quadraticCurveTo(0, 0, 0, -rr); fx.fill();
+      fx.globalAlpha = a * .5; fx.fillRect(-rr * 1.7, -.6 * fxDpr, rr * 3.4, 1.2 * fxDpr);
+      fx.restore(); return true;
+    });
+    fx.globalAlpha = 1;
   }
   function fxFrame() {
     fxRaf = 0;
-    const s = fxState;
-    if (!s || !rv.classList.contains("on")) { fx.clearRect(0, 0, FXC.width, FXC.height); fxState = null; return; }
-    const W = FXC.width, H = FXC.height, R = s.rect, u = W / 1400;
-    fx.clearRect(0, 0, W, H);
-    if (!s.landed) {
-      const p = (S.pos() - (s.land - BLAST)) / BLAST;
-      if (p >= 1) landNow();
-      else if (p > -0.5) {
-        const dot = (x, y, c, size) => { fx.fillStyle = c; fx.fillRect(x - size / 2, y - size / 2, size, size); };
-        fx.globalAlpha = 1;
-        if (p < .55) {
-          const drift = .9 + .1 * Math.max(0, p) / .55;
-          for (const q of s.P) dot(R.x + q.u * R.w + q.dx * R.w * drift, R.y + q.v * R.h + q.dy * R.h * drift, q.c, q.s);
-          if (p > .42) { fx.globalAlpha = (p - .42) * 6; fx.fillStyle = "#FFFFFF"; fx.fillRect(0, H * .5, W, 2 * fxDpr); fx.globalAlpha = 1; }
-        } else {
-          const k = (p - .55) / .45, e = k * k * k;
-          for (const q of s.P) dot(R.x + q.u * R.w + q.dx * R.w * (1 - e) + Math.sin(k * 9 + q.ph) * (1 - e) * 4 * fxDpr, R.y + q.v * R.h + q.dy * R.h * (1 - e), q.c, q.s);
+    const pn = performance.now(), dt = Math.min(.05, (pn - lastT) / 1000); lastT = pn;
+    if (FW !== Math.round(BACK.clientWidth * fxDpr)) fxSize();
+    bk.clearRect(0, 0, FW, FH); fx.clearRect(0, 0, FXC.width, FXC.height);
+    if (!R && !smoke) return;
+    const now = S.pos();
+    try {
+      if (R) {
+        if (!R.boomed && now >= R.land) {
+          R.boomed = true; boom(now);
+          R.streaks.forEach(s => (s.boost = rnd(3, 6)));
+          stage.classList.remove("letterbox"); stage.classList.add("party");
+          S.tone(1, 20000, .02); pflashGo(); hit();
         }
+        if (R.boomed && !R.logoed && now >= R.land + LOGO_DELAY) {
+          R.logoed = true; R.el.classList.add("burst"); hit();
+        }
+        if (R.logoed && !R.landed && now >= R.land + LOGO_DELAY + .6) { R.landed = true; R.landT = now; rv.classList.add("landed"); }
+        if (R.landed && !R.floating && now >= R.land + LOGO_DELAY + .9) { R.floating = true; R.el.classList.remove("burst"); R.el.classList.add("float"); }
       }
-    }
-    if (s.landed) {
-      const t = (performance.now() - s.idle0) / 1000, L = s.logo;
-      // sheen: a soft band of light glides across the logo only
-      const cyc = 3.2, sp = ((t + 2.2) % cyc) / .95;
-      if (sp < 1 && L.img.complete) {
-        const o = s.oc, og = s.og; o.width = Math.ceil(R.w); o.height = Math.ceil(R.h);
-        og.clearRect(0, 0, o.width, o.height); og.globalCompositeOperation = "source-over"; og.drawImage(L.img, 0, 0, o.width, o.height);
-        og.globalCompositeOperation = "source-in";
-        const e = sp < .5 ? 4 * sp * sp * sp : 1 - Math.pow(-2 * sp + 2, 3) / 2, bx = -o.width * .4 + o.width * 1.8 * e;
-        const gr = og.createLinearGradient(bx - o.width * .16, 0, bx + o.width * .16, o.height * .35);
-        gr.addColorStop(0, "rgba(255,255,255,0)"); gr.addColorStop(.5, "rgba(255,255,255,.42)"); gr.addColorStop(1, "rgba(255,255,255,0)");
-        og.fillStyle = gr; og.fillRect(0, 0, o.width, o.height);
-        fx.globalAlpha = 1; fx.drawImage(o, R.x, R.y);
-      }
-      // glints: little four-point stars on the brightest chrome
-      if (L.bright.length && s.glints.length < (isLite() ? 3 : 5) && Math.random() < .07) {
-        const b = L.bright[(Math.random() * L.bright.length) | 0];
-        s.glints.push({ u: b.u, v: b.v, t0: t, life: .55 + Math.random() * .35, size: (12 + Math.random() * 14) * fxDpr * Math.max(.7, R.w / (700 * fxDpr)), rot: (Math.random() - .5) * .5 });
-      }
-      s.glints = s.glints.filter(gl => {
-        const k = (t - gl.t0) / gl.life; if (k >= 1) return false;
-        const a = Math.sin(k * Math.PI), r = gl.size * (.4 + .6 * a), x = R.x + gl.u * R.w, y = R.y + gl.v * R.h;
-        fx.save(); fx.translate(x, y); fx.rotate(gl.rot);
-        const rg = fx.createRadialGradient(0, 0, 0, 0, 0, r * .45); rg.addColorStop(0, `rgba(255,255,255,${a})`); rg.addColorStop(1, "rgba(255,200,230,0)");
-        fx.globalAlpha = 1; fx.fillStyle = rg; fx.beginPath(); fx.arc(0, 0, r * .45, 0, 6.283); fx.fill();
-        fx.globalAlpha = a; fx.fillStyle = "#FFFFFF";
-        fx.beginPath(); fx.moveTo(0, -r); fx.quadraticCurveTo(0, 0, r * .9, 0); fx.quadraticCurveTo(0, 0, 0, r); fx.quadraticCurveTo(0, 0, -r * .9, 0); fx.quadraticCurveTo(0, 0, 0, -r); fx.fill();
-        fx.globalAlpha = a * .5; fx.fillRect(-r * 1.7, -.6 * fxDpr, r * 3.4, 1.2 * fxDpr);
-        fx.restore(); return true;
-      });
-      fx.globalAlpha = 1;
-    }
+      if (smoke) drawSmoke(now, dt);
+      if (R) { if (!R.floating) centre(); drawRush(now, dt); if (R.landed) { if (R.floating) R.rect = measure(R.el); drawShine(now); } }
+    } catch (e) { console.error(e); }
     fxRaf = requestAnimationFrame(fxFrame);
   }
-  // starts the blast so the logo slams together exactly at song time `landAt`
-  function revealTeam(team, i, landAt) {
-    stopShuffle();
-    const entry = logoCache[team];
-    $("rvMini").textContent = i === 0 ? `Congratulations, ${P.firstName}` : "And";
+
+  const cue = (sec, fn, tk) => at(sec, tk).then(fn, () => {});
+  // one full reveal, all on the song clock: name build from `start`, rush from `suck`, explosion at `land`
+  function teamReveal(team, i, kind, start, suck, land, tk) {
+    stopShuffle(); fadeSmoke(.5);
+    stage.classList.remove("party"); stage.classList.add("letterbox");
+    loadLogo(team);
+    const entry = logoCache[team], lite = isLite();
+    // logo scene, prepared now and shown once the words are sucked away
+    $("rvMini").textContent = `Congratulations, ${P.firstName}`;
     $("rvName").textContent = team;
     const w = $("rvLogo"), rays = document.createElement("div"), ri = document.createElement("i"), im = document.createElement("img");
     rays.className = "rays"; rays.setAttribute("aria-hidden", "true"); rays.append(ri);
-    im.className = "rv-img"; im.alt = team; im.src = entry ? entry.src : (TEAMS[team] || {}).logo || textLogo(team);
-    w.style.setProperty("--beat2", isDance(team) ? ".836s" : ".743s");
+    im.className = "rv-img"; im.alt = team; im.src = entry.src;
+    w.style.setProperty("--beat2", kind === "dance" ? ".836s" : ".743s");
     w.replaceChildren(rays, im);
     w.classList.toggle("tall", !!(TEAMS[team] || {}).tall);
     rv.classList.remove("landed");
-    show("rv");
-    if (!entry || !entry.frags.length) { fxState = null; setTimeout(() => { fxState = { landed: false, el: im, rect: measure(im), logo: entry || { img: im, bright: [] }, oc: document.createElement("canvas"), land: landAt, P: [] }; fxState.og = fxState.oc.getContext("2d"); landNow(); if (!fxRaf) fxRaf = requestAnimationFrame(fxFrame); }, Math.max(0, (landAt - S.pos()) * 1000)); return; }
-    fxSize();
-    const n = isLite() ? 900 : 2200, step = Math.max(1, Math.floor(entry.frags.length / n)), parts = [], R0 = measure(im), base = Math.max(2.4 * fxDpr, R0.w / 130);
-    for (let k = 0; k < entry.frags.length; k += step) {
-      const f = entry.frags[k], a = Math.atan2(f.v - .5, f.u - .5) + (Math.random() - .5) * 1.2, d = .12 + Math.random() * .5;
-      parts.push({ u: f.u, v: f.v, c: f.c, dx: Math.cos(a) * d, dy: Math.sin(a) * d * .8, ph: Math.random() * 6.283, s: Math.max(1.8, base * (.7 + Math.random() * .9)) });
-    }
     const oc = document.createElement("canvas");
-    fxState = { landed: false, el: im, rect: measure(im), logo: entry, P: parts, land: landAt, oc, og: oc.getContext("2d") };
-    if (!fxRaf) fxRaf = requestAnimationFrame(fxFrame);
+    R = { team, kind, suck, land, el: im, logo: entry, streaks: [], sparks: [], glints: [], oc, og: oc.getContext("2d"), cx: null, cy: null,
+      brew: Array.from({ length: lite ? 16 : 44 }, () => ({ a: rnd(0, 6.283), r: Math.pow(Math.random(), .7), w: rnd(.8, 1.6) * (Math.random() < .8 ? 1 : -1), s: rnd(.55, 1.1), rot: rnd(0, 6.283), spin: rnd(-1.5, 1.5), ph: rnd(0, 6.283), spr: pickSpr(kind), hot: Math.random() < .25 })) };
+    kick();
+
+    // the words
+    const nm = String(P.firstName || "").trim(), b = $("nbIn"), nameEl = $("nbName"), line = $("nbLine");
+    const sc = Math.min(1, 6 / Math.max(1, nm.length + 1));
+    nameEl.textContent = nm ? nm + "," : ""; nameEl.className = "nb-name";
+    nameEl.style.setProperty("--nf", `min(${(26 * sc).toFixed(1)}vw, ${(40 * sc).toFixed(1)}vh)`);
+    const words = i === 0 ? ["Your", kind === "dance" ? "dance" : String(SEASON), "team", "is"]
+      : ["Your", ORD[i] || "next"].concat(kind === "dance" ? ["dance"] : [], ["team", "is"]);
+    line.classList.toggle("long", words.length > 4);
+    line.replaceChildren(...words.flatMap((t, k) => { const s = document.createElement("span"); s.textContent = t; return k ? [" ", s] : [s]; }));
+    const dots = [...document.querySelectorAll("#nbIn .nb-dots i")];
+    dots.forEach(d => (d.className = ""));
+    b.className = "nb"; b.style.setProperty("--push", Math.max(.5, suck - start) + "s");
+    const scn = $("nb"); scn.classList.remove("on"); void scn.offsetWidth; show("nb");
+    const span = suck - start, wEls = [...line.querySelectorAll("span")];
+    nameEl.classList.add("slam");
+    cue(start + .3, () => { pflashGo(true); hit(); }, tk);
+    cue(start + .4, () => b.classList.add("push"), tk);
+    wEls.forEach((s, k) => cue(start + span * (.28 + .27 * k / Math.max(1, wEls.length - 1)), () => s.classList.add("slam"), tk));
+    dots.forEach((d, k) => cue(start + span * (.6 + .32 * k / (dots.length - 1)), () => d.classList.add("pop"), tk));
+    cue(start + span * .62, () => b.classList.add("tremble", "glitch"), tk);
+    cue(suck, () => { b.classList.remove("tremble"); b.classList.add("suck"); }, tk);
+    cue(suck + .32, () => { if (R && R.el === im) show("rv"); }, tk);
   }
 
   const loadText = (i, d) => i === 0
@@ -1176,7 +1413,7 @@ const S = (() => {
   });
 
   function prep(style) {
-    note.textContent = ""; tension(0);
+    note.textContent = ""; tension(0); fxKill();
     stage.classList.remove("party", "letterbox");
     stage.classList.toggle("dance", style === "dance");
     $("mute").hidden = false; $("skip").hidden = false;
@@ -1199,21 +1436,19 @@ const S = (() => {
       await at(12.68, tk); moment("newgoals"); look(.42, 1);
       await at(14.14, tk); moment("best", true); hit(); look(.5, 0);
       await at(14.88, tk); hit();
-      await at(15.6, tk);  loading(loadText(0, "cheer"), shuffleList("cheer"), 1.14, tk); look(.4, 1.5); tension(1);
-      await at(16.2, tk);  tension(2);
-      await at(16.74, tk); tension(0); cut();
-      await at(16.8, tk); revealTeam(list[0], 0, 17.8); look(.44, 1.5);
-      await at(20.45, tk); burst(.7); hit(); look(.5, 1);
+      await at(15.25, tk); teamReveal(list[0], 0, "cheer", 15.25, 16.74, 17.8, tk); look(.2, 4);
+      await at(16.74, tk); look(.1, 6);
+      await at(17.8, tk);  look(.14, 4);
+      await at(20.45, tk); burst(.7); hit();
       let r = 17.8;
       for (let i = 1; i < list.length; i++) {
         const l = r + 5.62; r = l + 2.94;
-        await at(l, tk); loading(loadText(i, "cheer"), shuffleList("cheer"), r - 1.06 - l, tk); tension(1); S.tone(.65, 520); look(.22, 6);
-        await at(r - 1.6, tk); tension(2);
-        await at(r - 1.06, tk); tension(0); cut();
-        await at(r - 1.0, tk); revealTeam(list[i], i, r); look(.48, 1);
+        await at(l, tk); teamReveal(list[i], i, "cheer", l, r - 1.06, r, tk); S.tone(.65, 520); look(.16, 6);
+        await at(r - 1.06, tk); look(.1, 6);
+        await at(r, tk); look(.14, 4);
       }
       await at(r + (list.length > 1 ? 2.97 : 5.62), tk);
-      showAll(list); burst(.6); bg("celebrate", .34, 2, { from: 0 }); $("skip").hidden = true;
+      fadeSmoke(1.2); R = null; showAll(list); burst(.6); bg("celebrate", .34, 2, { from: 0 }); $("skip").hidden = true;
     } catch (e) { if (e) console.error(e); }
   }
 
@@ -1235,19 +1470,17 @@ const S = (() => {
       await at(6.8, tk);  moment("d-elite"); look(.4, 1);
       await at(8.1, tk);  moment("best", true); hit(); look(.46, 0);
       await at(8.85, tk); hit();
-      await at(9.5, tk);  loading(loadText(0, "dance"), shuffleList("dance"), 1.25, tk); look(.4, 1.5); tension(1);
-      await at(10.2, tk); tension(2);
-      await at(10.75, tk); tension(0); cut();
-      await at(10.81, tk); revealTeam(list[0], 0, 11.81); look(.45, 1.5);
+      await at(9.2, tk);  teamReveal(list[0], 0, "dance", 9.2, 10.75, 11.81, tk); look(.2, 4);
+      await at(10.75, tk); look(.1, 6);
+      await at(11.81, tk); look(.14, 4);
       let r = 11.81;
       for (let i = 1; i < list.length; i++) {
         const l = r + 3.59; r = l + 3.27;
-        await at(l, tk); loading(loadText(i, "dance"), shuffleList("dance"), r - 1.06 - l, tk); tension(1); S.tone(.65, 520); look(.2, 6);
-        await at(r - 1.6, tk); tension(2);
-        await at(r - 1.06, tk); tension(0); cut();
-        await at(r - 1.0, tk); revealTeam(list[i], i, r); look(.45, 1.5);
+        await at(l, tk); teamReveal(list[i], i, "dance", l, r - 1.06, r, tk); S.tone(.65, 520); look(.16, 6);
+        await at(r - 1.06, tk); look(.1, 6);
+        await at(r, tk); look(.14, 4);
       }
-      await at(r + 3.33, tk); summary();
+      await at(r + 3.33, tk); fadeSmoke(1); summary(true);
     } catch (e) { if (e) console.error(e); }
   }
 
@@ -1306,8 +1539,9 @@ const S = (() => {
     }
   }
 
-  function summary() {
+  function summary(keepSmoke) {
     token++; tension(0);
+    if (keepSmoke !== true) fxKill(); else R = null;
     stage.classList.remove("letterbox"); stage.classList.add("dance", "party");
     stopShuffle(); show("s"); $("skip").hidden = true; $("mute").hidden = false;
     bg("celebrate", .16, 8);
