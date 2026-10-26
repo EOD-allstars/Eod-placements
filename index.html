@@ -194,7 +194,26 @@ canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-eve
 .logo-wrap.tall { width: min(66%, 360px); }
 .team-logo { width: 100%; height: auto; display: block; opacity: 0; transform: scale(2.6); filter: drop-shadow(0 14px 34px rgba(0,0,0,.55)); }
 .dance .team-logo { filter: drop-shadow(0 14px 34px rgba(0,0,0,.55)); }
-.scene.on .team-logo { animation: slam .7s cubic-bezier(.2,1.5,.4,1) forwards, float 4s ease-in-out 1s infinite; }
+.scene.on .team-logo { animation: slamHard .26s cubic-bezier(.55,0,1,.45) forwards, settle .5s ease-out .26s both; }
+/* slam: drops from huge to full size, accelerating, no bounce */
+@keyframes slamHard { 0% { opacity: 0; transform: scale(3.4); } 35% { opacity: 1; } 100% { opacity: 1; transform: scale(1); } }
+@keyframes settle { 0% { transform: scale(1); } 30% { transform: scale(.965); } 100% { transform: scale(1); } }
+.logo-wrap { position: relative; isolation: isolate; }
+/* shockwave rings on impact */
+.shock { position: absolute; left: 50%; top: 50%; width: 70%; aspect-ratio: 1; border-radius: 50%; pointer-events: none; z-index: -1;
+  border: 6px solid #FFE0F0; box-shadow: 0 0 40px 6px rgba(255,79,168,.8), inset 0 0 30px rgba(255,79,168,.6); opacity: 0; transform: translate(-50%, -50%) scale(.2); }
+.shock.s2 { border-width: 3px; }
+.dance .shock { border-color: #FFFFFF; box-shadow: 0 0 40px 6px rgba(255,255,255,.6), inset 0 0 30px rgba(255,255,255,.4); }
+.scene.on .shock { animation: shock .85s cubic-bezier(.15,.7,.3,1) .24s forwards; }
+.scene.on .shock.s2 { animation-duration: 1.15s; animation-delay: .32s; }
+@keyframes shock { 0% { opacity: 1; transform: translate(-50%, -50%) scale(.3); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(2.6); } }
+/* soft glow behind the logo, pulsing with the beat */
+.glow { position: absolute; inset: -18% -12%; z-index: -2; pointer-events: none; border-radius: 50%; opacity: 0;
+  background: radial-gradient(closest-side, rgba(255,79,168,.8), rgba(255,79,168,.3) 55%, transparent 78%); }
+.dance .glow { background: radial-gradient(closest-side, rgba(255,255,255,.5), rgba(255,255,255,.18) 55%, transparent 78%); }
+.scene.on .glow { animation: glowIn .3s ease-out .2s forwards, glowPulse var(--beat2, .743s) ease-in-out .5s infinite; }
+@keyframes glowIn { to { opacity: .9; } }
+@keyframes glowPulse { 0%, 100% { opacity: .45; transform: scale(.92); } 12% { opacity: 1; transform: scale(1.06); } }
 @keyframes slam { 0% { opacity: 0; transform: scale(2.6); } 40% { opacity: 1; } 100% { opacity: 1; transform: scale(1); } }
 @keyframes float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -8px; } }
 .team-name { margin: 0; font-family: var(--wide); font-size: clamp(14px, 3vw, 18px); letter-spacing: .24em; text-transform: uppercase; color: var(--pink-soft); opacity: 0; transition: opacity .5s ease .8s; }
@@ -460,7 +479,9 @@ button:disabled { opacity: .6; cursor: default; }
 .lite .card, .lite .cell, .lite .ctl { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 .lite .card { background: rgba(20,19,24,.92) !important; }
 .lite .team-logo, .lite .duo img, .lite .eod, .lite .gate-logo { filter: none !important; }
-.lite .scene.on .team-logo { animation: slamLite .6s cubic-bezier(.2,1.4,.4,1) forwards !important; }
+.lite .scene.on .team-logo { animation: slamHard .26s cubic-bezier(.55,0,1,.45) forwards, settle .5s ease-out .26s both !important; }
+.lite .shock { box-shadow: none !important; }
+.lite .shock.s2 { display: none; }
 .lite .w-big, .lite .mega, .lite .congrats, .lite .gate-title, .lite .logo-text, .lite .lets, .lite .best, .lite .w-dance, .lite .slam-line { filter: none !important; }
 .lite .w-big span, .lite .best .b1, .lite .best .b3, .lite .slam-line, .lite .moment span, .lite .moment em, .lite .line, .lite .slot span { filter: none !important; }
 .lite .scene.on .w-big span, .lite .scene.on .best .b1, .lite .scene.on .best .b3, .lite .scene.on .slam-line { animation-name: slamLite !important; }
@@ -810,8 +831,8 @@ const S = (() => {
   }
   function reveal(id) {
     stopShuffle(); flashGo(); show(id);
-    stage.classList.remove("letterbox"); stage.classList.add("party"); hit();
-    setTimeout(() => burst(1), 140);
+    stage.classList.remove("letterbox"); stage.classList.add("party");
+    setTimeout(() => { hit(); burst(1); }, 240);
   }
   function leak() { if (reduce) return; const l = $("leak"); l.classList.remove("go"); void l.offsetWidth; l.classList.add("go"); }
   // gives each line its own entrance: restart the scene's animations and sweep light across
@@ -888,7 +909,11 @@ const S = (() => {
   }
   function revealTeam(team, i) {
     $("rvMini").textContent = i === 0 ? `Congratulations, ${P.firstName}` : "And";
-    const w = $("rvLogo"); w.replaceChildren(logoNode(team, "team-logo"));
+    const w = $("rvLogo"), glow = document.createElement("div"), s1 = document.createElement("div"), s2 = document.createElement("div");
+    glow.className = "glow"; s1.className = "shock"; s2.className = "shock s2";
+    // two pulses per bar of the track that's playing
+    w.style.setProperty("--beat2", isDance(team) ? ".836s" : ".743s");
+    w.replaceChildren(glow, s1, s2, logoNode(team, "team-logo"));
     w.classList.toggle("tall", !!(TEAMS[team] || {}).tall);
     $("rvName").textContent = team;
     reveal("rv");
@@ -1026,16 +1051,16 @@ const S = (() => {
       await at(14.88, tk); hit();
       await at(15.6, tk);  loading(loadText(0, "cheer"), shuffleList("cheer"), 2.14, tk); look(.4, 1.5); tension(1);
       await at(16.7, tk);  tension(2);
-      await at(17.74, tk); tension(0); cut();
-      await at(17.8, tk);  revealTeam(list[0], 0); look(.44, 1.5);
+      await at(17.5, tk); tension(0); cut();
+      await at(17.56, tk); revealTeam(list[0], 0); look(.44, 1.5);
       await at(20.45, tk); burst(.7); hit(); look(.5, 1);
       let r = 17.8;
       for (let i = 1; i < list.length; i++) {
         const l = r + 5.62; r = l + 2.94;
         await at(l, tk); loading(loadText(i, "cheer"), shuffleList("cheer"), r - l, tk); tension(1); S.tone(.65, 520); look(.22, 6);
         await at(r - 1.0, tk); tension(2);
-        await at(r - .06, tk); tension(0); cut();
-        await at(r, tk); S.tone(1, 20000, .02); revealTeam(list[i], i); look(.48, 1);
+        await at(r - .3, tk); tension(0); cut();
+        await at(r - .24, tk); S.tone(1, 20000, .02); revealTeam(list[i], i); look(.48, 1);
       }
       await at(r + (list.length > 1 ? 2.97 : 5.62), tk);
       showAll(list); burst(.6); bg("celebrate", .34, 2, { from: 0 }); $("skip").hidden = true;
@@ -1062,15 +1087,15 @@ const S = (() => {
       await at(8.85, tk); hit();
       await at(9.5, tk);  loading(loadText(0, "dance"), shuffleList("dance"), 2.26, tk); look(.4, 1.5); tension(1);
       await at(10.7, tk); tension(2);
-      await at(11.76, tk); tension(0); cut();
-      await at(11.81, tk); revealTeam(list[0], 0); look(.45, 1.5);
+      await at(11.51, tk); tension(0); cut();
+      await at(11.57, tk); revealTeam(list[0], 0); look(.45, 1.5);
       let r = 11.81;
       for (let i = 1; i < list.length; i++) {
         const l = r + 3.59; r = l + 3.27;
         await at(l, tk); loading(loadText(i, "dance"), shuffleList("dance"), r - l, tk); tension(1); S.tone(.65, 520); look(.2, 6);
         await at(r - 1.07, tk); tension(2);
-        await at(r - .05, tk); tension(0); cut();
-        await at(r, tk); S.tone(1, 20000, .02); revealTeam(list[i], i); look(.45, 1.5);
+        await at(r - .3, tk); tension(0); cut();
+        await at(r - .24, tk); S.tone(1, 20000, .02); revealTeam(list[i], i); look(.45, 1.5);
       }
       await at(r + 3.33, tk); summary();
     } catch (e) {}
