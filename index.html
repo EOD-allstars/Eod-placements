@@ -1299,9 +1299,9 @@ const S = (() => {
     nameEl.classList.add("slam");
     cue(start + .3, () => { pflashGo(true); hit(); }, tk);
     cue(start + .4, () => b.classList.add("push"), tk);
-    wEls.forEach((s, k) => cue(start + span * (.28 + .27 * k / Math.max(1, wEls.length - 1)), () => s.classList.add("slam"), tk));
-    dots.forEach((d, k) => cue(start + span * (.6 + .32 * k / (dots.length - 1)), () => d.classList.add("pop"), tk));
-    cue(start + span * .62, () => b.classList.add("tremble", "glitch"), tk);
+    wEls.forEach((s, k) => cue(start + span * (.16 + .2 * k / Math.max(1, wEls.length - 1)), () => s.classList.add("slam"), tk));
+    dots.forEach((d, k) => cue(start + span * (.46 + .44 * k / (dots.length - 1)), () => d.classList.add("pop"), tk));
+    cue(start + span * .7, () => b.classList.add("tremble", "glitch"), tk);
     cue(suck, () => { b.classList.remove("tremble"); b.classList.add("suck"); }, tk);
     cue(suck + .32, () => { if (R && R.el === im) show("rv"); }, tk);
   }
@@ -1438,17 +1438,17 @@ const S = (() => {
       await at(12.68, tk); moment("newgoals"); look(.42, 1);
       await at(14.14, tk); moment("best", true); hit(); look(.5, 0);
       await at(14.88, tk); hit();
-      // first reveal: words from 15.25, rush from the hit at 17.75, explosion on the big drop at 20.40
-      await at(15.25, tk); teamReveal(list[0], 0, "cheer", 15.25, 17.75, 20.4, tk); look(.2, 4);
-      await at(17.75, tk); look(.1, 6);
+      // first reveal: words from 15.25 and held, rush from 19.0, explosion on the big drop at 20.40
+      await at(15.25, tk); teamReveal(list[0], 0, "cheer", 15.25, 19.0, 20.4, tk); look(.2, 4);
+      await at(19.0, tk); look(.1, 6);
       await at(20.4, tk);  look(.14, 4);
       // later reveals land on the next big hits in the song
       const LANDS = [20.4, 26.99, 32.84, 38.7];
       let r = 20.4;
       for (let i = 1; i < list.length; i++) {
-        r = LANDS[i] || r + 5.86; const l = r - 2.94;
-        await at(l, tk); teamReveal(list[i], i, "cheer", l, r - 1.06, r, tk); S.tone(.65, 520); look(.16, 6);
-        await at(r - 1.06, tk); look(.1, 6);
+        r = LANDS[i] || r + 5.86; const l = r - 3.8, sk = r - .97;
+        await at(l, tk); teamReveal(list[i], i, "cheer", l, sk, r, tk); S.tone(.65, 520); look(.16, 6);
+        await at(sk, tk); look(.1, 6);
         await at(r, tk); look(.14, 4);
       }
       await at(r + (list.length > 1 ? 2.97 : 5.62), tk);
